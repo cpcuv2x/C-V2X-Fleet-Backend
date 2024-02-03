@@ -1,0 +1,16 @@
+{
+  "name": "c-v2x-fleet-backend",
+  "version": "1.0.0",
+  "description": "backend code for c-v2x fleet management system",
+  "main": "rsu.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "chariu",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4"
+  }
+}
