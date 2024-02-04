@@ -62,7 +62,12 @@ io.on('connection', async (socket) => {
 });
 
 const emitRecSpeed = setInterval(() => {
-	io.emit('recommend speed', { recommend_speed: recSpeed, rsu_id: id });
+	io.emit('recommend speed', {
+		rsu_id: id,
+		recommend_speed: recSpeed,
+		unit: 'km/h',
+		timestamp: Date(),
+	});
 	// console.log('emit rec speed');
 }, 1000);
 
