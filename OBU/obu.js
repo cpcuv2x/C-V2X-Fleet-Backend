@@ -2,31 +2,67 @@
 
 const Producer = require('../RabbitMQ/producer');
 
+// other libs
+const os = require('os');
 const io = require('socket.io-client');
+const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 
-const socket = io('http://localhost:8000');
+// init server for send to frontend
+const app = express();
+const httpServer = createServer(app);
+const frontendIo = new Server(httpServer);
 
 // mock
+const port = 8001;
 const id = '02';
+// const interfaces = os.networkInterfaces();
+// const ip = interfaces.lo0[0].address; // car's ip
 
 let isActive = true;
 
+// RSU data
+let rsuIp = 'localhost'; // mock
+let rsuPort = 8000; // mock
+let rsuId;
 let recSpeed;
+let rsuLatitude;
+let rsuLongitude;
+
+// OBU data
+let speed;
 let latitude;
 let longitude;
-let front_camera_status;
-let back_camera_status;
-let right_camera_status;
-let left_camera_status;
+let frontCameraStatus;
+let backCameraStatus;
+let rightCameraStatus;
+let leftCameraStatus;
 
 // RabbitMQ parameters
 const heartbeatKey = 'heartbeat_obu';
 const locationKey = 'location_obu';
+const speedKey = 'speed_obu';
 
 const producer = Producer();
 producer.connect();
 
-// socket
+// connect to RSU
+let socket = io(`http://${rsuIp}:${rsuPort}`);
+
+// assume that every rsu uses same port
+// uncommend when ready
+// const updateRsu = setInterval(() => {
+// 	let currentRsuIp = 'get from something';
+// 	if (currentRsuIp !== rsuIp) {
+// 		socket.disconnect();
+// 		rsuIp = currentRsuIp;
+// 		socket = io(`http://${rsuIp}:${rsuPort}`);
+// 		console.log('update rsu');
+// 	}
+// }, 5000);
+
+// socket (connected to RSU)
 socket.on('connect', () => {
 	console.log('Connected to the server');
 });
@@ -41,11 +77,53 @@ socket.on('incident report', (message) => {
 
 socket.on('recommend speed', (message) => {
 	console.log('Received recommend speed:', message);
-	recSpeed = message['recommend speed'];
+	recSpeed = message['recommend_speed'];
+});
+
+socket.on('rsu location', (message) => {
+	console.log('RSU location:', message);
+	rsuId = message['id'];
+	rsuLatitude = message['latitude'];
+	rsuLongitude = message['longitude'];
 });
 
 const emitCarId = setInterval(() => {
 	socket.emit('car id', { type: 'CAR', id: id });
+}, 1000);
+
+// socket (send to OBU frontend)
+frontendIo.on('connection', async (socket) => {
+	console.log('connected to frontend');
+	// emergency
+	// socket.on('emergency', (message) => {
+	// 	producer.publish('emergencyRoutingKey', JSON.stringify(message))
+	// });
+
+	socket.on('disconnect', () => {
+		console.log('frontend disconnect');
+	});
+});
+
+const emitCarInfo = setInterval(() => {
+	frontendIo.emit('car info', {
+		id: id,
+		velocity: speed,
+		unit: 'km/h',
+		latitude: latitude,
+		longitude: longitude,
+		timestamp: Date(),
+	});
+}, 1000);
+
+const emitRsuInfo = setInterval(() => {
+	frontendIo.emit('rsu info', {
+		rsu_id: rsuId,
+		recommend_speed: recSpeed,
+		unit: 'km/h',
+		latitude: rsuLatitude,
+		longitude: rsuLongitude,
+		timestamp: Date(),
+	});
 }, 1000);
 
 // RabbitMQ
@@ -55,10 +133,10 @@ const produceHeartbeat = setInterval(() => {
 		id: id,
 		data: {
 			status: isActive ? 'ACTIVE' : 'INACTIVE',
-			front_camera: front_camera_status,
-			back_camera: back_camera_status,
-			right_camera: right_camera_status,
-			left_camera: left_camera_status,
+			front_camera: frontCameraStatus,
+			back_camera: backCameraStatus,
+			right_camera: rightCameraStatus,
+			left_camera: leftCameraStatus,
 		},
 		timestamp: Date(),
 	};
@@ -77,3 +155,18 @@ const produceLocation = setInterval(() => {
 	producer.publish(locationKey, JSON.stringify(message));
 	console.log('produce location');
 }, 1000);
+
+const produceSpeed = setInterval(() => {
+	message = {
+		type: 'CAR',
+		id: id,
+		velocity: speed,
+		unit: 'km/h',
+		timestamp: Date(),
+	};
+	producer.publish(speedKey, JSON.stringify(message));
+}, 1000);
+
+httpServer.listen(port, () => {
+	console.log(`server running at http://localhost:${port}`);
+});
