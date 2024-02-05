@@ -12,11 +12,18 @@ const { Server } = require('socket.io');
 // init server
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+	transports: ['websocket', 'polling'],
+	cors: {
+		origin: '*',
+		methods: ['GET', 'POST'],
+	},
+	allowEIO3: true,
+});
 
 // mock
-const port = 8000;
-const id = '01';
+const port = process.argv[2];
+const id = process.argv[3];
 
 let isActive = true;
 const connectedCarId = new Map();
@@ -48,7 +55,7 @@ const consumer = Consumer(recSpeedQueue, recSpeedKey, updateRecSpeed);
 io.on('connection', async (socket) => {
 	socket.on('car id', (message) => {
 		// console.log('receive car id:', message);
-		connectedCarId.set(socket.id, id);
+		connectedCarId.set(socket.id, message['id']);
 	});
 
 	socket.on('incident report', (message) => {
@@ -101,4 +108,9 @@ const produceHeartbeat = setInterval(() => {
 
 httpServer.listen(port, () => {
 	console.log(`server running at http://localhost:${port}`);
+});
+
+process.on('unhandledRejection', (err, promise) => {
+	console.error(`Unhandled Rejection: ${err}`);
+	process.exit(1);
 });
