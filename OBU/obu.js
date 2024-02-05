@@ -12,11 +12,19 @@ const { Server } = require('socket.io');
 // init server for send to frontend
 const app = express();
 const httpServer = createServer(app);
-const frontendIo = new Server(httpServer);
+const frontendIo = new Server(httpServer, {
+	transports: ['websocket', 'polling'],
+	cors: {
+		origin: '*',
+		methods: ['GET', 'POST'],
+	},
+	allowEIO3: true,
+	closeOnBeforeunload: true,
+});
 
 // mock
-const port = 8001;
-const id = '02';
+const port = process.argv[2];
+const id = process.argv[3];
 // const interfaces = os.networkInterfaces();
 // const ip = interfaces.lo0[0].address; // car's ip
 
@@ -55,7 +63,9 @@ let socket = io(`http://${rsuIp}:${rsuPort}`);
 // const updateRsu = setInterval(() => {
 // 	let currentRsuIp = 'get from something';
 // 	if (currentRsuIp !== rsuIp) {
-// 		socket.disconnect();
+// 		if (socket && socket.connected) {
+// 			socket.disconnect();
+// 		}
 // 		rsuIp = currentRsuIp;
 // 		socket = io(`http://${rsuIp}:${rsuPort}`);
 // 		console.log('update rsu');
@@ -98,6 +108,10 @@ frontendIo.on('connection', async (socket) => {
 	// socket.on('emergency', (message) => {
 	// 	producer.publish('emergencyRoutingKey', JSON.stringify(message))
 	// });
+
+	socket.on('camera status', (message) => {
+		updateCameraStatus(message);
+	});
 
 	socket.on('disconnect', () => {
 		console.log('frontend disconnect');
@@ -166,6 +180,14 @@ const produceSpeed = setInterval(() => {
 	};
 	producer.publish(speedKey, JSON.stringify(message));
 }, 1000);
+
+// update variable handler
+const updateCameraStatus = (data) => {
+	frontCameraStatus = data['front'];
+	backCameraStatus = data['back'];
+	leftCameraStatus = data['left'];
+	rightCameraStatus = data['right'];
+};
 
 httpServer.listen(port, () => {
 	console.log(`server running at http://localhost:${port}`);
