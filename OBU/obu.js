@@ -5,13 +5,11 @@ const Producer = require('../RabbitMQ/producer');
 // other libs
 const os = require('os');
 const io = require('socket.io-client');
-const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 // init server for send to frontend
-const app = express();
-const httpServer = createServer(app);
+const httpServer = createServer();
 const frontendIo = new Server(httpServer, {
 	transports: ['websocket', 'polling'],
 	cors: {
@@ -51,26 +49,13 @@ let leftCameraStatus;
 const heartbeatKey = 'heartbeat_obu';
 const locationKey = 'location_obu';
 const speedKey = 'speed_obu';
+const emergencyKey = 'emergency_obu';
 
 const producer = Producer();
 producer.connect();
 
 // connect to RSU
 let socket = io(`http://${rsuIp}:${rsuPort}`);
-
-// assume that every rsu uses same port
-// uncommend when ready
-// const updateRsu = setInterval(() => {
-// 	let currentRsuIp = 'get from something';
-// 	if (currentRsuIp !== rsuIp) {
-// 		if (socket && socket.connected) {
-// 			socket.disconnect();
-// 		}
-// 		rsuIp = currentRsuIp;
-// 		socket = io(`http://${rsuIp}:${rsuPort}`);
-// 		console.log('update rsu');
-// 	}
-// }, 5000);
 
 // socket (connected to RSU)
 socket.on('connect', () => {
@@ -104,13 +89,16 @@ const emitCarId = setInterval(() => {
 // socket (send to OBU frontend)
 frontendIo.on('connection', async (socket) => {
 	console.log('connected to frontend');
-	// emergency
-	// socket.on('emergency', (message) => {
-	// 	producer.publish('emergencyRoutingKey', JSON.stringify(message))
-	// });
 
 	socket.on('camera status', (message) => {
 		updateCameraStatus(message);
+	});
+
+	socket.on('emergency', (message) => {
+		message['car_id'] = id;
+		message['status'] = 'PENDING';
+		producer.publish(emergencyKey, JSON.stringify(message));
+		console.log(message);
 	});
 
 	socket.on('disconnect', () => {
