@@ -5,13 +5,11 @@ const Producer = require('../RabbitMQ/producer');
 const Consumer = require('../RabbitMQ/consumer');
 
 // other libs
-const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 // init server
-const app = express();
-const httpServer = createServer(app);
+const httpServer = createServer();
 const io = new Server(httpServer, {
 	transports: ['websocket', 'polling'],
 	cors: {
