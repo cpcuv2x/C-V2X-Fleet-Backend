@@ -68,6 +68,7 @@ socket.on('disconnect', () => {
 
 socket.on('incident report', (message) => {
 	console.log('Received incident:', message);
+	frontendIo.emit('incident report', message);
 });
 
 socket.on('recommend speed', (message) => {
