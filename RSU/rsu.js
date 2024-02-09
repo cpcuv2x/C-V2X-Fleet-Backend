@@ -31,11 +31,15 @@ let recSpeed;
 let latitude;
 let longitude;
 
+const irList = []; // list of all alive reports
+
 // RabbitMQ parameter
 const heartbeatKey = 'heartbeat_rsu';
 const locationKey = 'location_rsu';
 const recSpeedKey = `recommend_speed_rsu_${id}`;
 const recSpeedQueue = `queue_${recSpeedKey}`;
+const irKey = `incident_report_rsu_${id}`;
+const irQueue = `queue_${irKey}`;
 
 const updateRecSpeed = (msg) => {
 	let newRecSpeed = msg['velocity'];
@@ -43,11 +47,25 @@ const updateRecSpeed = (msg) => {
 	console.log(`new rec speed = ${recSpeed} km/h`);
 };
 
+const updateIr = (msg) => {
+	irList = message; // backend return list of current available incident reports
+	emitIr();
+};
+
+const emitIr = () => {
+	if (irList.length !== 0) {
+		irList.forEach((report) => {
+			io.emit('incident report', report);
+		});
+	}
+};
+
 // RabbitMQ
 const producer = Producer();
 producer.connect();
 
-const consumer = Consumer(recSpeedQueue, recSpeedKey, updateRecSpeed);
+const recSpeedConsumer = Consumer(recSpeedQueue, recSpeedKey, updateRecSpeed);
+const irConsumer = Consumer(irQueue, irKey, updateIr);
 
 // socket
 io.on('connection', async (socket) => {
@@ -58,7 +76,11 @@ io.on('connection', async (socket) => {
 
 	socket.on('incident report', (message) => {
 		message['rsu_id'] = id;
-		socket.broadcast.emit('incident report', message);
+		if (!irList.includes(message)) {
+			irList.push(message);
+			socket.broadcast.emit('incident report', message);
+			producer.publish(irKey, JSON.stringify(message));
+		}
 	});
 
 	socket.on('disconnect', () => {
