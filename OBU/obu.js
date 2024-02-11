@@ -180,3 +180,12 @@ const updateCameraStatus = (data) => {
 httpServer.listen(port, () => {
 	console.log(`server running at http://localhost:${port}`);
 });
+
+module.exports = {
+	getSpeed: function () {
+		return speed;
+	},
+	setSpeed: function (newSpeed) {
+		speed = newSpeed;
+	},
+};
