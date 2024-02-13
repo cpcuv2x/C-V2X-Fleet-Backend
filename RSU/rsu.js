@@ -131,28 +131,51 @@ const start = () => {
 		produceHeartbeat,
 	} = initServer();
 
+	const intervalList = [emitRecSpeed, emitRSULocation, produceHeartbeat];
+
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, emitRecSpeed, emitRSULocation, produceHeartbeat);
+		restartServer(httpServer, intervalList);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, emitRecSpeed, emitRSULocation, produceHeartbeat);
+		restartServer(httpServer, intervalList);
+	});
+
+	process.on('SIGINT', () => {
+		console.log('Received SIGINT. Shutting down gracefully...');
+		cleanup(intervalList, io, httpServer);
+		process.exit(0);
+	});
+
+	process.on('SIGTERM', () => {
+		console.log('Received SIGTERM. Shutting down gracefully...');
+		cleanup(intervalList, io, httpServer);
+		process.exit(0);
+	});
+};
+
+const cleanup = (intervalList, serverSocket, httpServer) => {
+	intervalList.forEach((item) => {
+		clearInterval(item);
+	});
+
+	serverSocket.close(() => {
+		console.log('Close RSU socket Server');
+	});
+
+	httpServer.close(() => {
+		console.log('Server closed');
 	});
 };
 
 // restart
-const restartServer = (
-	httpServer,
-	emitRecSpeed,
-	emitRSULocation,
-	produceHeartbeat,
-) => {
-	clearInterval(emitRecSpeed);
-	clearInterval(emitRSULocation);
-	clearInterval(produceHeartbeat);
+const restartServer = (httpServer, intervalList) => {
+	intervalList.forEach((item) => {
+		clearInterval(item);
+	});
 	httpServer.close(() => {
 		console.log('Server closed. Restarting...');
 		start();
