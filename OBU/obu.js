@@ -42,12 +42,6 @@ const initServer = () => {
 	let rsuLatitude;
 	let rsuLongitude;
 
-	// OBU data
-	let frontCameraStatus;
-	let backCameraStatus;
-	let rightCameraStatus;
-	let leftCameraStatus;
-
 	// RabbitMQ parameters
 	const heartbeatKey = 'heartbeat_obu';
 	const locationKey = 'location_obu';
@@ -93,10 +87,6 @@ const initServer = () => {
 	frontendIo.on('connection', async (socket) => {
 		console.log('connected to frontend');
 
-		socket.on('camera status', (message) => {
-			updateCameraStatus(message);
-		});
-
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
 			message['status'] = 'PENDING';
@@ -136,13 +126,7 @@ const initServer = () => {
 		message = {
 			type: 'CAR',
 			id: id,
-			data: {
-				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
-				front_camera: frontCameraStatus,
-				back_camera: backCameraStatus,
-				right_camera: rightCameraStatus,
-				left_camera: leftCameraStatus,
-			},
+			status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
 			timestamp: Date(),
 		};
 		producer.publish(heartbeatKey, JSON.stringify(message));
@@ -171,14 +155,6 @@ const initServer = () => {
 		};
 		producer.publish(speedKey, JSON.stringify(message));
 	}, 1000);
-
-	// update variable handler
-	const updateCameraStatus = (data) => {
-		frontCameraStatus = data['front'];
-		backCameraStatus = data['back'];
-		leftCameraStatus = data['left'];
-		rightCameraStatus = data['right'];
-	};
 
 	httpServer.listen(port, () => {
 		console.log(`server running at http://localhost:${port}`);
