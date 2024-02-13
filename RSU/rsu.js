@@ -12,6 +12,10 @@ const { Server } = require('socket.io');
 const port = process.argv[2];
 const id = process.argv[3];
 
+// sim data
+let latitude;
+let longitude;
+
 const initServer = () => {
 	// init server
 	const httpServer = createServer();
@@ -28,9 +32,6 @@ const initServer = () => {
 	const connectedCarId = new Map();
 
 	let recSpeed;
-	// gonna get from somewhere
-	let latitude;
-	let longitude;
 
 	// RabbitMQ parameter
 	const heartbeatKey = 'heartbeat_rsu';
