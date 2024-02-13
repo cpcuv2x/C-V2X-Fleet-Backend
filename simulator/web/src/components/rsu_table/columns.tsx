@@ -20,13 +20,13 @@ export const columns: ColumnDef<RSU>[] = [
             return <Heartbeat id={id} status={status} />
         }
     },
-    {
-        accessorKey: "connected_obu",
-        header: "Connected OBU",
-        cell: () => {
-            return <Connected_OBU />
-        }
-    }
+    // {
+    //     accessorKey: "connected_obu",
+    //     header: "Connected OBU",
+    //     cell: () => {
+    //         return <Connected_OBU />
+    //     }
+    // }
     // {
     //     accessorKey: "location",
     //     header: "Location",
