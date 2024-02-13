@@ -16,6 +16,7 @@ const id = process.argv[3];
 
 // sim data
 let isActive;
+let isWarning;
 let speed;
 let latitude;
 let longitude;
@@ -136,7 +137,7 @@ const initServer = () => {
 			type: 'CAR',
 			id: id,
 			data: {
-				status: isActive ? 'ACTIVE' : 'INACTIVE',
+				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
 				front_camera: frontCameraStatus,
 				back_camera: backCameraStatus,
 				right_camera: rightCameraStatus,
@@ -273,11 +274,45 @@ const restartServer = (httpServer, intervalList) => {
 
 start();
 
+// update value for sim
 module.exports = {
+	// isActive
+	getActiveStatus: function () {
+		return isActive;
+	},
+	setActiveStatus: function (active) {
+		isActive = active;
+	},
+
+	// isWarning
+	getWarningStatus: function () {
+		return isWarning;
+	},
+	setWarningStatus: function (warning) {
+		isWarning = warning;
+	},
+
+	// speed
 	getSpeed: function () {
 		return speed;
 	},
 	setSpeed: function (newSpeed) {
 		speed = newSpeed;
+	},
+
+	// latitude
+	getLatitude: function () {
+		return latitude;
+	},
+	setLatitude: function (newLatitude) {
+		latitude = newLatitude;
+	},
+
+	// longitude
+	getLongitude: function () {
+		return longitude;
+	},
+	setLongitude: function (newLongitude) {
+		longitude = newLongitude;
 	},
 };

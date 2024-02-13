@@ -184,3 +184,30 @@ const restartServer = (httpServer, intervalList) => {
 };
 
 start();
+
+// update value for sim
+module.exports = {
+	// isActive
+	getActiveStatus: function () {
+		return isActive;
+	},
+	setActiveStatus: function (active) {
+		isActive = active;
+	},
+
+	// latitude
+	getLatitude: function () {
+		return latitude;
+	},
+	setLatitude: function (newLatitude) {
+		latitude = newLatitude;
+	},
+
+	// longitude
+	getLongitude: function () {
+		return longitude;
+	},
+	setLongitude: function (newLongitude) {
+		longitude = newLongitude;
+	},
+};
