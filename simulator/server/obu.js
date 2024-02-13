@@ -1,6 +1,11 @@
 let { getSpeed, setSpeed } = require('../../OBU/obu.js');
 
 process.on('message', (message) => {
-	console.log('Message from parent:', message);
-	setSpeed(message);
+	const { type, value } = message;
+	console.log('Message from parent:', type, value);
+	if (type === 'speed') {
+		setSpeed(value);
+	} else if (type === 'heartbeat') {
+		// setheartbeat(message);
+	}
 });

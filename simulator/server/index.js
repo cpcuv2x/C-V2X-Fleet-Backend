@@ -9,11 +9,13 @@ const child_process1 = fork('obu.js', ['12346', 'ID2']);
 const OBU_MAP = new Map();
 OBU_MAP.set('ID1', {
 	id: 'ID1',
-	speed: 20,
+	speed: 0,
+	heartbeat: 'INACTIVE',
 });
 OBU_MAP.set('ID2', {
 	id: 'ID2',
-	speed: 20,
+	speed: 0,
+	heartbeat: 'INACTIVE',
 });
 
 app.use(cors());
@@ -31,11 +33,25 @@ app.post('/obu/:id', (req, res) => {
 	const id = req.params.id;
 	const data = req.body;
 
-	const speed = data.speed;
+	// Update the status
+	const heartbeat = data.heartbeat;
+	if (heartbeat) {
+		child_process.send({
+			type: 'heartbeat',
+			value: heartbeat,
+		});
+		OBU_MAP.get(id).heartbeat = heartbeat;
+	}
 
 	// Update the speed of the OBU
-	child_process.send(speed);
-	OBU_MAP.get(id).speed = speed;
+	const speed = data.speed;
+	if (speed) {
+		child_process.send({
+			type: 'speed',
+			value: speed,
+		});
+		OBU_MAP.get(id).speed = speed;
+	}
 
 	res.json(OBU_MAP.get(id));
 });

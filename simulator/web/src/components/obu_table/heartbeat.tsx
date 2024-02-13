@@ -21,7 +21,7 @@ export default function Heartbeat(props: HeartbeatProps) {
         <div className="flex flex-wrap gap-6">
             <div className="flex flex-col gap-2">
                 <h2 className="font-bold">Status</h2>
-                <Select onValueChange={(value) => updateOBU(id, { status: value })}>
+                <Select onValueChange={(value) => updateOBU(id, { heartbeat: value })}>
                     <SelectTrigger defaultValue={heartbeat} className="w-[150px]">
                         <SelectValue placeholder={heartbeat} />
                     </SelectTrigger>
