@@ -13,6 +13,7 @@ const port = process.argv[2];
 const id = process.argv[3];
 
 // sim data
+let isActive;
 let latitude;
 let longitude;
 
@@ -28,7 +29,6 @@ const initServer = () => {
 		allowEIO3: true,
 	});
 
-	let isActive = true;
 	const connectedCarId = new Map();
 
 	let recSpeed;

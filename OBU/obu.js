@@ -15,6 +15,7 @@ const id = process.argv[3];
 // const ip = interfaces.lo0[0].address; // car's ip
 
 // sim data
+let isActive;
 let speed;
 let latitude;
 let longitude;
@@ -31,8 +32,6 @@ const initServer = () => {
 		allowEIO3: true,
 		closeOnBeforeunload: true,
 	});
-
-	let isActive = true;
 
 	// RSU data
 	let rsuIp = 'localhost'; // mock
