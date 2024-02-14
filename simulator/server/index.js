@@ -31,7 +31,8 @@ for (const data of rsuData) {
 	rsuProcess[data.id] = child_process;
 	RSU_MAP[data.id] = {
 		id: data.id,
-		heartbeat: 'INACTIVE',
+		heartbeat: undefined,
+		location: undefined,
 	};
 }
 
@@ -102,6 +103,16 @@ app.post('/rsu/:id', (req, res) => {
 		rsuProcess[id].send({
 			type: 'heartbeat',
 			value: heartbeat,
+		});
+	}
+
+	// Update the position of the RSU
+	const location = data.location;
+	if (location) {
+		RSU_MAP[id].location = location;
+		rsuProcess[id].send({
+			type: 'location',
+			value: location,
 		});
 	}
 
