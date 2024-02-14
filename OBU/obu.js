@@ -126,7 +126,9 @@ const initServer = () => {
 		message = {
 			type: 'CAR',
 			id: id,
-			status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
+			data: {
+				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
+			},
 			timestamp: Date(),
 		};
 		producer.publish(heartbeatKey, JSON.stringify(message));

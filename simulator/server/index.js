@@ -88,6 +88,10 @@ app.post('/rsu/:id', (req, res) => {
 	const heartbeat = data.heartbeat;
 	if (heartbeat) {
 		RSU_MAP[id].heartbeat = heartbeat;
+		rsuProcess[id].send({
+			type: 'heartbeat',
+			value: heartbeat,
+		});
 	}
 
 	res.json(RSU_MAP[id]);

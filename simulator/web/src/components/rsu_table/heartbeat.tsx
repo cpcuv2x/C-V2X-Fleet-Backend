@@ -15,7 +15,7 @@ export default function Heartbeat(props: HeartbeatProps) {
             <div>Inactive</div>
             <Switch
                 defaultChecked={status === Status.ACTIVE ? true : false}
-                onCheckedChange={check => updateRSU(id, { 'status': check ? 'ACTIVE' : 'INACTIVE' })}
+                onCheckedChange={check => updateRSU(id, { 'heartbeat': check ? 'ACTIVE' : 'INACTIVE' })}
             />
             <div>Active</div>
         </div>
