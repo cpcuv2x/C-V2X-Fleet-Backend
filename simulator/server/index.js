@@ -18,6 +18,7 @@ for (const data of obuData) {
 		id: data.id,
 		speed: undefined,
 		heartbeat: undefined,
+		route: undefined,
 	};
 }
 
@@ -67,6 +68,16 @@ app.post('/obu/:id', (req, res) => {
 			value: speed,
 		});
 		OBU_MAP[id].speed = speed;
+	}
+
+	// Update the route of the OBU
+	const route = data.route;
+	if (route) {
+		obuProcess[id].send({
+			type: 'route',
+			value: route,
+		});
+		OBU_MAP[id].route = route;
 	}
 
 	res.json(OBU_MAP[id]);
