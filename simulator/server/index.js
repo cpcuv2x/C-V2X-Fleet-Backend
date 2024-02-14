@@ -16,8 +16,8 @@ for (const data of obuData) {
 	obuProcess[data.id] = child_process;
 	OBU_MAP[data.id] = {
 		id: data.id,
-		speed: 0,
-		heartbeat: 'INACTIVE',
+		speed: undefined,
+		heartbeat: undefined,
 	};
 }
 

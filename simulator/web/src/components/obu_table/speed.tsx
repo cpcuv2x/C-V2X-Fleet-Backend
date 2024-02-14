@@ -13,7 +13,7 @@ export default function Speed(props: SpeedProps) {
 
     return (
         <div className="min-w-fit w-[300px] flex flex-col gap-4">
-            <div className="flex justify-end">{speedValue} km/h</div>
+            <div className="flex justify-end">{speedValue ?? "-"} km/h</div>
             {/* TODO: Debouncing */}
             <Slider className="w-full"
                 onValueChange={
