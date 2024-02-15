@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+		<title>RSU's Information</title>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+			}
+
+			#recommend_speed {
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="recommend_speed" style="justify-self: center">
+			<h1>RSU</h1>
+			<h2>Current Recommend Speed</h2>
+			<h1 id="speed"></h1>
+			<h3>km/h</h3>
+		</div>
+		<!-- <script src="/socket.io/socket.io.js"></script> -->
+		<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+		<script>
+			const socket = io('http://localhost:8000');
+
+			const speedElement = document.getElementById('speed');
+
+			const updateSpeed = (speed) => {
+				speedElement.textContent = speed;
+			};
+
+			socket.on('recommend speed', (msg) => {
+				console.log(msg);
+				updateSpeed(msg.recommend_speed);
+			});
+		</script>
+	</body>
+</html>
