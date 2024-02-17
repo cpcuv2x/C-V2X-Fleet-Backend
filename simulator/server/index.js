@@ -16,6 +16,7 @@ for (const data of obuData) {
 	obuProcess[data.id] = child_process;
 	OBU_MAP[data.id] = {
 		id: data.id,
+		name: data.name,
 		speed: undefined,
 		heartbeat: undefined,
 		route: undefined,
@@ -31,6 +32,7 @@ for (const data of rsuData) {
 	rsuProcess[data.id] = child_process;
 	RSU_MAP[data.id] = {
 		id: data.id,
+		name: data.name,
 		heartbeat: undefined,
 		location: undefined,
 	};

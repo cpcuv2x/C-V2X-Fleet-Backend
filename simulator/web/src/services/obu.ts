@@ -5,10 +5,9 @@ export async function getOBU(): Promise<OBU[]> {
 	const { data } = await axios.get('http://localhost:8000/obu');
 	if (!data) return [];
 	const obu_array = data.map((obu: any) => {
-		const { id, speed, heartbeat } = obu;
-		return { id, speed, heartbeat };
+		const { id, speed, heartbeat, name } = obu;
+		return { id, speed, heartbeat, name };
 	});
-	console.log('obu_array', obu_array);
 	return obu_array;
 }
 

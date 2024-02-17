@@ -11,6 +11,10 @@ export const columns: ColumnDef<RSU>[] = [
 		header: 'ID',
 	},
 	{
+		accessorKey: 'name',
+		header: 'Name',
+	},
+	{
 		accessorKey: 'heartbeat',
 		header: 'Heartbeat',
 		cell: ({ row }) => {

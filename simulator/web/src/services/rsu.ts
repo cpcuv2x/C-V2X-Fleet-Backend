@@ -5,10 +5,9 @@ export async function getRSU(): Promise<RSU[]> {
 	const { data } = await axios.get('http://localhost:8000/rsu');
 	if (!data) return [];
 	const rsu_array = data.map((rsu: any) => {
-		const { id, heartbeat } = rsu;
-		return { id, heartbeat };
+		const { id, heartbeat, name } = rsu;
+		return { id, heartbeat, name };
 	});
-	console.log(rsu_array);
 	return rsu_array;
 }
 
