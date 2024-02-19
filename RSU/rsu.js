@@ -13,7 +13,7 @@ const port = process.argv[2];
 const id = process.argv[3];
 
 // sim data
-let isActive;
+let isActive = false; // default
 let latitude;
 let longitude;
 
@@ -60,7 +60,9 @@ const initServer = () => {
 
 		socket.on('incident report', (message) => {
 			message['rsu_id'] = id;
-			socket.broadcast.emit('incident report', message);
+			if (isActive) {
+				socket.broadcast.emit('incident report', message);
+			}
 		});
 
 		socket.on('disconnect', () => {
@@ -69,12 +71,14 @@ const initServer = () => {
 	});
 
 	const emitRecSpeed = setInterval(() => {
-		io.emit('recommend speed', {
-			rsu_id: id,
-			recommend_speed: recSpeed,
-			unit: 'km/h',
-			timestamp: Date(),
-		});
+		if (isActive) {
+			io.emit('recommend speed', {
+				rsu_id: id,
+				recommend_speed: recSpeed,
+				unit: 'km/h',
+				timestamp: Date(),
+			});
+		}
 		// console.log('emit rec speed');
 	}, 1000);
 
@@ -87,9 +91,11 @@ const initServer = () => {
 			longitude: longitude,
 			timestamp: Date(),
 		};
-		io.emit('rsu location', message);
-		// console.log('produce location');
-		producer.publish(locationKey, JSON.stringify(message));
+		if (isActive) {
+			io.emit('rsu location', message);
+			// console.log('produce location');
+			producer.publish(locationKey, JSON.stringify(message));
+		}
 	}, 1000);
 
 	const produceHeartbeat = setInterval(() => {
@@ -102,7 +108,9 @@ const initServer = () => {
 			},
 			timestamp: Date(),
 		};
-		producer.publish(heartbeatKey, JSON.stringify(message));
+		if (isActive) {
+			producer.publish(heartbeatKey, JSON.stringify(message));
+		}
 		// console.log('produce heartbeat');
 	}, 1000);
 

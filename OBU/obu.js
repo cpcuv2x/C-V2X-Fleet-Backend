@@ -15,7 +15,7 @@ const id = process.argv[3];
 // const ip = interfaces.lo0[0].address; // car's ip
 
 // sim data
-let isActive;
+let isActive = false; // default
 let isWarning;
 let speed;
 let latitude;
@@ -80,7 +80,9 @@ const initServer = () => {
 	});
 
 	const emitCarId = setInterval(() => {
-		socket.emit('car id', { type: 'CAR', id: id });
+		if (isActive) {
+			socket.emit('car id', { type: 'CAR', id: id });
+		}
 	}, 1000);
 
 	// socket (send to OBU frontend)
@@ -90,8 +92,10 @@ const initServer = () => {
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
 			message['status'] = 'PENDING';
-			producer.publish(emergencyKey, JSON.stringify(message));
-			console.log(message);
+			if (isActive) {
+				producer.publish(emergencyKey, JSON.stringify(message));
+				console.log(message);
+			}
 		});
 
 		socket.on('disconnect', () => {
@@ -100,25 +104,29 @@ const initServer = () => {
 	});
 
 	const emitCarInfo = setInterval(() => {
-		frontendIo.emit('car info', {
-			id: id,
-			velocity: speed,
-			unit: 'km/h',
-			latitude: latitude,
-			longitude: longitude,
-			timestamp: Date(),
-		});
+		if (isActive) {
+			frontendIo.emit('car info', {
+				id: id,
+				velocity: speed,
+				unit: 'km/h',
+				latitude: latitude,
+				longitude: longitude,
+				timestamp: Date(),
+			});
+		}
 	}, 1000);
 
 	const emitRsuInfo = setInterval(() => {
-		frontendIo.emit('rsu info', {
-			rsu_id: rsuId,
-			recommend_speed: recSpeed,
-			unit: 'km/h',
-			latitude: rsuLatitude,
-			longitude: rsuLongitude,
-			timestamp: Date(),
-		});
+		if (isActive) {
+			frontendIo.emit('rsu info', {
+				rsu_id: rsuId,
+				recommend_speed: recSpeed,
+				unit: 'km/h',
+				latitude: rsuLatitude,
+				longitude: rsuLongitude,
+				timestamp: Date(),
+			});
+		}
 	}, 1000);
 
 	// RabbitMQ
@@ -131,8 +139,10 @@ const initServer = () => {
 			},
 			timestamp: Date(),
 		};
-		producer.publish(heartbeatKey, JSON.stringify(message));
-		console.log('produce heartbeat');
+		if (isActive) {
+			producer.publish(heartbeatKey, JSON.stringify(message));
+			console.log('produce heartbeat');
+		}
 	}, 1000);
 
 	const produceLocation = setInterval(() => {
@@ -143,8 +153,10 @@ const initServer = () => {
 			longitude: longitude,
 			timestamp: Date(),
 		};
-		producer.publish(locationKey, JSON.stringify(message));
-		console.log('produce location');
+		if (isActive) {
+			producer.publish(locationKey, JSON.stringify(message));
+			console.log('produce location');
+		}
 	}, 1000);
 
 	const produceSpeed = setInterval(() => {
@@ -155,7 +167,9 @@ const initServer = () => {
 			unit: 'km/h',
 			timestamp: Date(),
 		};
-		producer.publish(speedKey, JSON.stringify(message));
+		if (isActive) {
+			producer.publish(speedKey, JSON.stringify(message));
+		}
 	}, 1000);
 
 	httpServer.listen(port, () => {
