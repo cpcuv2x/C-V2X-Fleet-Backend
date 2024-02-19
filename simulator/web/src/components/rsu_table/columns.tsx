@@ -35,7 +35,8 @@ export const columns: ColumnDef<RSU>[] = [
 		header: 'Location',
 		cell: ({ row }) => {
 			const id = row.getValue<string>('id');
-			return <Location id={id} />;
+			const location = row.getValue<string>('location');
+			return <Location id={id} location={location} />;
 		},
 	},
 ];
