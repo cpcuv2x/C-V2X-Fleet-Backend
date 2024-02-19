@@ -5,6 +5,7 @@ const {
 } = require('../../RSU/rsu.js');
 
 const { exat_pos } = require('./static/exat_pos.js');
+const { chula_pos } = require('./static/chula_pos.js')
 
 let location_route = null;
 let route_counter = 0;
@@ -25,6 +26,14 @@ process.on('message', (message) => {
 				route_counter = (route_counter + 1) % exat_pos.length;
 				setLatitude(exat_pos[route_counter].latitude);
 				setLongitude(exat_pos[route_counter].longitude);
+			}, 1000);
+		}
+		if (value === 'chula') {
+			location_route = 'chula';
+			location_runner = setInterval(() => {
+				route_counter = (route_counter + 1) % chula_pos.length;
+				setLatitude(chula_pos[route_counter].latitude);
+				setLongitude(chula_pos[route_counter].longitude);
 			}, 1000);
 		}
 	} else if (type === 'heartbeat') {

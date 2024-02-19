@@ -21,8 +21,8 @@ export default function Location(props: LocationProps) {
 					<SelectValue placeholder="Select Position" />
 				</SelectTrigger>
 				<SelectContent>
+					<SelectItem value="chula">จุฬา</SelectItem>
 					<SelectItem value="exat">การทางพิเศษ</SelectItem>
-					<SelectItem value="fixed">Fixed</SelectItem>
 				</SelectContent>
 			</Select>
 		</div>
