@@ -1,17 +1,21 @@
 const amqp = require('amqplib/callback_api');
 
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 const Producer = () => {
 	let channel;
 	const exchange = 'direct_logs';
+	const rabbitMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 
 	const connect = () => {
-		amqp.connect('amqp://localhost', function (error0, connection) {
-			if (error0) {
-				throw error0;
+		amqp.connect(rabbitMQ_URL, function (conn_err, connection) {
+			if (conn_err) {
+				throw conn_err;
 			}
-			connection.createChannel(function (error1, ch) {
-				if (error1) {
-					throw error1;
+			connection.createChannel(function (channel_error, ch) {
+				if (channel_error) {
+					throw channel_error;
 				}
 
 				ch.assertExchange(exchange, 'direct', {
