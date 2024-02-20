@@ -34,10 +34,9 @@ const initServer = () => {
 	let recSpeed;
 
 	// RabbitMQ parameter
-	const heartbeatKey = 'heartbeat_rsu';
-	const locationKey = 'location_rsu';
-	const recSpeedKey = `recommend_speed_rsu_${id}`;
-	const recSpeedQueue = `queue_${recSpeedKey}`;
+	const heartbeatQueue = 'heartbeat';
+	const locationQueue = 'location';
+	const recSpeedQueue = `rec_speed_${id}`;
 
 	const updateRecSpeed = (msg) => {
 		let newRecSpeed = msg['velocity'];
@@ -47,11 +46,17 @@ const initServer = () => {
 		}
 	};
 
-	// RabbitMQ
-	const producer = Producer();
-	producer.connect();
+	const initProducer = (queueName, isDurable = false) => {
+		const producer = Producer(queueName, isDurable);
+		producer.connect();
+		return producer;
+	};
 
-	const consumer = Consumer(recSpeedQueue, recSpeedKey, updateRecSpeed);
+	// RabbitMQ
+	const heartbeatProducer = initProducer(heartbeatQueue);
+	const locationProducer = initProducer(locationQueue);
+
+	const consumer = Consumer(recSpeedQueue, updateRecSpeed, true);
 
 	// socket
 	io.on('connection', async (socket) => {
@@ -96,7 +101,7 @@ const initServer = () => {
 		if (isActive) {
 			io.emit('rsu location', message);
 			// console.log('produce location');
-			producer.publish(locationKey, JSON.stringify(message));
+			locationProducer.publish(JSON.stringify(message));
 		}
 	}, 1000);
 
@@ -111,7 +116,7 @@ const initServer = () => {
 			timestamp: Date(),
 		};
 		if (isActive) {
-			producer.publish(heartbeatKey, JSON.stringify(message));
+			heartbeatProducer.publish(JSON.stringify(message));
 		}
 		// console.log('produce heartbeat');
 	}, 1000);
@@ -122,7 +127,8 @@ const initServer = () => {
 	return {
 		httpServer,
 		io,
-		producer,
+		heartbeatProducer,
+		locationProducer,
 		consumer,
 		emitRecSpeed,
 		emitRSULocation,
@@ -135,7 +141,8 @@ const start = () => {
 	const {
 		httpServer,
 		io,
-		producer,
+		heartbeatProducer,
+		locationProducer,
 		consumer,
 		emitRecSpeed,
 		emitRSULocation,
@@ -143,27 +150,28 @@ const start = () => {
 	} = initServer();
 
 	const intervalList = [emitRecSpeed, emitRSULocation, produceHeartbeat];
+	const producerList = [heartbeatProducer, locationProducer];
 
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList, producer, consumer);
+		restartServer(httpServer, intervalList, producerList, consumer);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList, producer, consumer);
+		restartServer(httpServer, intervalList, producerList, consumer);
 	});
 
 	process.on('SIGINT', () => {
 		console.log('Received SIGINT. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer, producer, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumer);
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', () => {
 		console.log('Received SIGTERM. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer, producer, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumer);
 		process.exit(0);
 	});
 };
@@ -172,14 +180,16 @@ const cleanup = (
 	intervalList,
 	serverSocket,
 	httpServer,
-	producer,
+	producerList,
 	consumer,
 ) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
 
-	producer.close();
+	producerList.forEach((producer) => {
+		producer.close();
+	});
 	consumer.close();
 
 	serverSocket.close(() => {
@@ -192,12 +202,14 @@ const cleanup = (
 };
 
 // restart
-const restartServer = (httpServer, intervalList, producer, consumer) => {
+const restartServer = (httpServer, intervalList, producerList, consumer) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
 
-	producer.close();
+	producerList.forEach((producer) => {
+		producer.close();
+	});
 	consumer.close();
 
 	httpServer.close(() => {
