@@ -4,6 +4,8 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const Consumer = (queueName, routingKey, callbackFunction) => {
+	let connection;
+	let channel;
 	const rabbitMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 
 	const callback = (ch, method, properties, body) => {
@@ -11,14 +13,19 @@ const Consumer = (queueName, routingKey, callbackFunction) => {
 		callbackFunction(data);
 	};
 
-	amqp.connect(rabbitMQ_URL, function (error0, connection) {
+	amqp.connect(rabbitMQ_URL, function (error0, conn) {
 		if (error0) {
 			throw error0;
 		}
-		connection.createChannel(function (error1, channel) {
+		connection = conn;
+
+		connection.createChannel(function (error1, ch) {
 			if (error1) {
+				connection.close();
 				throw error1;
 			}
+			channel = ch;
+
 			var exchange = 'direct_logs';
 
 			channel.assertExchange(exchange, 'direct', {
@@ -33,6 +40,7 @@ const Consumer = (queueName, routingKey, callbackFunction) => {
 				},
 				function (error2, q) {
 					if (error2) {
+						connection.close();
 						throw error2;
 					}
 					channel.bindQueue(q.queue, exchange, routingKey);
@@ -42,9 +50,21 @@ const Consumer = (queueName, routingKey, callbackFunction) => {
 					});
 				},
 			);
-			// console.log(' [*] Waiting for logs. To exit press CTRL+C');
 		});
 	});
+
+	const close = () => {
+		if (channel) {
+			channel.close();
+		}
+		if (connection) {
+			connection.close();
+		}
+	};
+
+	return {
+		close,
+	};
 };
 
 module.exports = Consumer;

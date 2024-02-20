@@ -216,31 +216,39 @@ const start = () => {
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producer);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producer);
 	});
 
 	process.on('SIGINT', () => {
 		console.log('Received SIGINT. Shutting down gracefully...');
-		cleanup(intervalList, socket, frontendIo, httpServer);
+		cleanup(intervalList, socket, frontendIo, httpServer, producer);
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', () => {
 		console.log('Received SIGTERM. Shutting down gracefully...');
-		cleanup(intervalList, socket, frontendIo, httpServer);
+		cleanup(intervalList, socket, frontendIo, httpServer, producer);
 		process.exit(0);
 	});
 };
 
-const cleanup = (intervalList, clientSocket, serverSocket, httpServer) => {
+const cleanup = (
+	intervalList,
+	clientSocket,
+	serverSocket,
+	httpServer,
+	producer,
+) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
+
+	producer.close();
 
 	clientSocket.disconnect();
 	console.log('disconnect from RSU');
@@ -254,10 +262,13 @@ const cleanup = (intervalList, clientSocket, serverSocket, httpServer) => {
 };
 
 // restart
-const restartServer = (httpServer, intervalList) => {
+const restartServer = (httpServer, intervalList, producer) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
+
+	producer.close();
+
 	httpServer.close(() => {
 		console.log('Server closed. Restarting...');
 		start();

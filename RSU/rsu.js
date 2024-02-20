@@ -41,8 +41,10 @@ const initServer = () => {
 
 	const updateRecSpeed = (msg) => {
 		let newRecSpeed = msg['velocity'];
-		recSpeed = newRecSpeed;
-		console.log(`new rec speed = ${recSpeed} km/h`);
+		if (isActive) {
+			recSpeed = newRecSpeed;
+			console.log(`new rec speed = ${recSpeed} km/h`);
+		}
 	};
 
 	// RabbitMQ
@@ -145,31 +147,40 @@ const start = () => {
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producer, consumer);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producer, consumer);
 	});
 
 	process.on('SIGINT', () => {
 		console.log('Received SIGINT. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer);
+		cleanup(intervalList, io, httpServer, producer, consumer);
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', () => {
 		console.log('Received SIGTERM. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer);
+		cleanup(intervalList, io, httpServer, producer, consumer);
 		process.exit(0);
 	});
 };
 
-const cleanup = (intervalList, serverSocket, httpServer) => {
+const cleanup = (
+	intervalList,
+	serverSocket,
+	httpServer,
+	producer,
+	consumer,
+) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
+
+	producer.close();
+	consumer.close();
 
 	serverSocket.close(() => {
 		console.log('Close RSU socket Server');
@@ -181,10 +192,14 @@ const cleanup = (intervalList, serverSocket, httpServer) => {
 };
 
 // restart
-const restartServer = (httpServer, intervalList) => {
+const restartServer = (httpServer, intervalList, producer, consumer) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
+
+	producer.close();
+	consumer.close();
+
 	httpServer.close(() => {
 		console.log('Server closed. Restarting...');
 		start();
