@@ -45,7 +45,7 @@ const initServer = () => {
 	// RabbitMQ parameters
 	const heartbeatQueue = 'heartbeat';
 	const locationQueue = 'location';
-	const speedQueue = 'speed';
+	const speedQueue = 'car_speed';
 	const emergencyQueue = 'emergency';
 
 	const initProducer = (queueName, isDurable = false) => {
