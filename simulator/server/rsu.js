@@ -4,8 +4,9 @@ const {
 	setLongitude,
 } = require('../../RSU/rsu.js');
 
-const { exat_pos } = require('./static/exat_pos.js');
-const { chula_pos } = require('./static/chula_pos.js');
+const { exat_route } = require('./static/exat_route.js');
+const { chula_route } = require('./static/chula_route.js');
+const { randomElement } = require('./utils.js');
 
 let location_route = null;
 
@@ -17,10 +18,10 @@ process.on('message', (message) => {
 			clear_route();
 		}
 		if (value === 'exat') {
-			change_route('exat', exat_pos);
+			change_route('exat', exat_route);
 		}
 		if (value === 'chula') {
-			change_route('chula', chula_pos);
+			change_route('chula', chula_route);
 		}
 	} else if (type === 'heartbeat') {
 		if (String(value).toLowerCase() === 'active') {
@@ -38,8 +39,9 @@ process.on('SIGTERM', () => {
 
 function change_route(route_name, position_route) {
 	location_route = route_name;
-	setLatitude(position_route[0].latitude);
-	setLongitude(position_route[0].longitude);
+	const { latitude, longitude } = randomElement(position_route);
+	setLatitude(latitude);
+	setLongitude(longitude);
 }
 
 function clear_route() {
