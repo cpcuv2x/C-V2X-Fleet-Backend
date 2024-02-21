@@ -83,7 +83,7 @@ const initServer = () => {
 				rsu_id: id,
 				recommend_speed: recSpeed,
 				unit: 'km/h',
-				timestamp: Date(),
+				timestamp: new Date(),
 			});
 		}
 		// console.log('emit rec speed');
@@ -96,7 +96,7 @@ const initServer = () => {
 			id: id,
 			latitude: latitude,
 			longitude: longitude,
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
 			io.emit('rsu location', message);
@@ -113,7 +113,7 @@ const initServer = () => {
 				status: isActive ? 'ACTIVE' : 'INACTIVE',
 				connected_OBU: [...connectedCarId.values()],
 			},
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
 			heartbeatProducer.publish(JSON.stringify(message));

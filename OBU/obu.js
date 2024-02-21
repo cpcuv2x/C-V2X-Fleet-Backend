@@ -119,7 +119,7 @@ const initServer = () => {
 				unit: 'km/h',
 				latitude: latitude,
 				longitude: longitude,
-				timestamp: Date(),
+				timestamp: new Date(),
 			});
 		}
 	}, 1000);
@@ -132,7 +132,7 @@ const initServer = () => {
 				unit: 'km/h',
 				latitude: rsuLatitude,
 				longitude: rsuLongitude,
-				timestamp: Date(),
+				timestamp: new Date(),
 			});
 		}
 	}, 1000);
@@ -145,7 +145,7 @@ const initServer = () => {
 			data: {
 				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
 			},
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
 			heartbeatProducer.publish(JSON.stringify(message));
@@ -159,7 +159,7 @@ const initServer = () => {
 			id: id,
 			latitude: latitude,
 			longitude: longitude,
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
 			locationProducer.publish(JSON.stringify(message));
@@ -173,7 +173,7 @@ const initServer = () => {
 			id: id,
 			velocity: speed,
 			unit: 'km/h',
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
 			speedProducer.publish(JSON.stringify(message));

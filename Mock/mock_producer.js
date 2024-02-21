@@ -12,7 +12,7 @@ const publishRecSpeed = (msg) => {
 			id: '01',
 			velocity: Math.random() * 120,
 			unit: 'km/h',
-			timestamp: Date(),
+			timestamp: new Date(),
 		});
 		producer.publish(message);
 	}
@@ -25,7 +25,7 @@ const consumer = Consumer('heartbeat', publishRecSpeed);
 // 		id: '01',
 // 		velocity: Math.random() * 120,
 // 		unit: 'km/h',
-// 		timestamp: Date(),
+// 		timestamp: new Date(),
 // 	});
 // 	producer.publish('recommend_speed_rsu_01', message);
 // }, 2000);
