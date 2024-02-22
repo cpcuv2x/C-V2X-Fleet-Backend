@@ -36,7 +36,7 @@ const initServer = () => {
 
 	// RSU data
 	let rsuIp = 'localhost'; // mock
-	let rsuPort = 8000; // mock
+	let rsuPort = 8001; // mock
 	let rsuId;
 	let recSpeed;
 	let rsuLatitude;
@@ -99,7 +99,6 @@ const initServer = () => {
 
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
-			message['status'] = 'PENDING';
 			if (isActive) {
 				emergencyProducer.publish(JSON.stringify(message));
 				console.log(message);
