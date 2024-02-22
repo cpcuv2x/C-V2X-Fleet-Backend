@@ -39,7 +39,7 @@ const initServer = () => {
 	const recSpeedQueue = `rec_speed_${id}`;
 
 	const updateRecSpeed = (msg) => {
-		let newRecSpeed = msg['velocity'];
+		let newRecSpeed = msg['recommend_speed'];
 		if (isActive) {
 			recSpeed = newRecSpeed;
 			console.log(`new rec speed = ${recSpeed} km/h`);
