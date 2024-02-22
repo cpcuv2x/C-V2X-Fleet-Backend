@@ -1,48 +1,83 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
-		<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>RSU's Information</title>
 		<style>
 			body {
 				margin: 0;
 				padding: 0;
+				font-family: Monospace, serif, sans-serif;
+				background-color: #fdfdff;
+				color: #393d3f;
+			}
+
+			#recommend_speed {
 				display: flex;
+				flex-direction: column;
 				justify-content: center;
 				align-items: center;
 				height: 100vh;
 			}
 
-			#recommend_speed {
-				position: fixed;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				text-align: center;
+			#title {
+				font-size: 2.5em;
+				color: #393d3f;
+			}
+
+			#topic {
+				font-size: 1.5em;
+			}
+
+			.imp {
+				font-weight: bold;
+			}
+
+			#recommend_speed h1 {
+				font-size: 2em;
+				color: #ff6600;
+				margin: 10px 0;
+			}
+
+			.highlight {
+				color: #62929e;
+				font-weight: bold;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="recommend_speed" style="justify-self: center">
-			<h1>RSU</h1>
-			<h2>Current Recommend Speed</h2>
+		<div id="recommend_speed">
+			<p id="title" class="imp">RSU's Information</p>
+			<p id="topic">ID: <span id="rsu" class="highlight"></span></p>
+			<p id="topic" class="imp">Current Recommend Speed</p>
 			<h1 id="speed"></h1>
-			<h3>km/h</h3>
+			<p>km/h</p>
+			<p id="topic">Timestamp: <span id="time" class="highlight"></span></p>
+			<p id="topic">
+				Send to OBU id(s): <span id="obu" class="highlight"></span>
+			</p>
 		</div>
-		<!-- <script src="/socket.io/socket.io.js"></script> -->
 		<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 		<script>
-			const socket = io('http://localhost:8000');
-
+			const socket = io('http://localhost:8001');
+			const rsuElement = document.getElementById('rsu');
 			const speedElement = document.getElementById('speed');
+			const timeElement = document.getElementById('time');
+			const obuElement = document.getElementById('obu');
 
-			const updateSpeed = (speed) => {
-				speedElement.textContent = speed;
+			const updateInfo = (msg) => {
+				rsuElement.textContent = msg['rsu_id'];
+				speedElement.textContent = msg['recommend_speed'];
+				timeElement.textContent = msg['timestamp'];
+				timeElement.classList.add('highlight');
+				obuElement.textContent = msg['connected_OBU'];
+				obuElement.classList.add('highlight');
 			};
 
 			socket.on('recommend speed', (msg) => {
 				console.log(msg);
-				updateSpeed(msg.recommend_speed);
+				updateInfo(msg);
 			});
 		</script>
 	</body>
