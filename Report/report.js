@@ -11,7 +11,7 @@ let longitude;
 
 // RSU data
 let rsuIp = 'localhost'; // mock
-let rsuPort = 8000; // mock
+let rsuPort = 8001; // mock
 
 // report type
 const TYPE = ['ACCIDENT', 'CLOSED ROAD', 'CONSTRUCTION', 'TRAFFIC CONGESTION'];
@@ -35,7 +35,7 @@ const emitReport = setInterval(() => {
 		detail: 'mock incident report',
 		latitude: latitude,
 		longitude: longitude,
-		timestamp: Date(),
+		timestamp: new Date(),
 	};
 	socket.emit('incident report', (message) => {
 		console.log('Sent incident:', message);
