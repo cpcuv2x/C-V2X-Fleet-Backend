@@ -33,14 +33,14 @@ const initServer = () => {
 
 	let recSpeed;
 
-	const irList = []; // list of all alive reports
+	const reportsList = []; // list of all alive reports
 
 	// RabbitMQ parameter
 	const heartbeatQueue = 'heartbeat';
 	const locationQueue = 'location';
 	const recSpeedQueue = `rec_speed_${id}`;
-	const irKey = `incident_report_rsu_${id}`;
-	const irQueue = `queue_${irKey}`;
+	const newReportQueue = 'new_report';
+	const reportsQueue = `reports_${id}`;
 
 	const updateRecSpeed = (msg) => {
 		let newRecSpeed = msg['recommend_speed'];
@@ -56,14 +56,14 @@ const initServer = () => {
 		return producer;
 	};
 
-	const updateIr = (msg) => {
-		irList = message; // backend return list of current available incident reports
-		emitIr();
+	const updateReports = (msg) => {
+		reportsList = msg; // backend return list of current available incident reports
+		emitReports();
 	};
 
-	const emitIr = () => {
-		if (irList.length !== 0) {
-			irList.forEach((report) => {
+	const emitReports = () => {
+		if (reportsList.length !== 0) {
+			reportsList.forEach((report) => {
 				io.emit('incident report', report);
 			});
 		}
@@ -72,9 +72,10 @@ const initServer = () => {
 	// RabbitMQ
 	const heartbeatProducer = initProducer(heartbeatQueue);
 	const locationProducer = initProducer(locationQueue);
+	const newReportProducer = initProducer(newReportQueue);
 
 	const recSpeedConsumer = Consumer(recSpeedQueue, updateRecSpeed, true);
-	const irConsumer = Consumer(irQueue, updateIr);
+	const reportsConsumer = Consumer(reportsQueue, updateReports, true);
 
 	// socket
 	io.on('connection', async (socket) => {
@@ -86,10 +87,10 @@ const initServer = () => {
 		socket.on('incident report', (message) => {
 			message['rsu_id'] = id;
 			if (isActive) {
-				if (!irList.includes(message)) {
-					irList.push(message);
+				if (!reportsList.includes(message)) {
+					reportsList.push(message);
 					socket.broadcast.emit('incident report', message);
-					producer.publish(irKey, JSON.stringify(message));
+					newReportProducer.publish(JSON.stringify(message));
 				}
 			}
 		});
@@ -151,8 +152,9 @@ const initServer = () => {
 		io,
 		heartbeatProducer,
 		locationProducer,
+		newReportProducer,
 		recSpeedConsumer,
-		irConsumer,
+		reportsConsumer,
 		emitRecSpeed,
 		emitRSULocation,
 		produceHeartbeat,
@@ -166,35 +168,38 @@ const start = () => {
 		io,
 		heartbeatProducer,
 		locationProducer,
-		consumer,
+		newReportProducer,
+		recSpeedConsumer,
+		reportsConsumer,
 		emitRecSpeed,
 		emitRSULocation,
 		produceHeartbeat,
 	} = initServer();
 
 	const intervalList = [emitRecSpeed, emitRSULocation, produceHeartbeat];
-	const producerList = [heartbeatProducer, locationProducer];
+	const producerList = [heartbeatProducer, locationProducer, newReportProducer];
+	const consumerList = [recSpeedConsumer, reportsConsumer];
 
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList, producerList, consumer);
+		restartServer(httpServer, intervalList, producerList, consumerList);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList, producerList, consumer);
+		restartServer(httpServer, intervalList, producerList, consumerList);
 	});
 
 	process.on('SIGINT', () => {
 		console.log('Received SIGINT. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer, producerList, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumerList);
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', () => {
 		console.log('Received SIGTERM. Shutting down gracefully...');
-		cleanup(intervalList, io, httpServer, producerList, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumerList);
 		process.exit(0);
 	});
 };
@@ -204,7 +209,7 @@ const cleanup = (
 	serverSocket,
 	httpServer,
 	producerList,
-	consumer,
+	consumerList,
 ) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
@@ -213,7 +218,10 @@ const cleanup = (
 	producerList.forEach((producer) => {
 		producer.close();
 	});
-	consumer.close();
+
+	consumerList.forEach((consumer) => {
+		consumer.close();
+	});
 
 	serverSocket.close(() => {
 		console.log('Close RSU socket Server');
@@ -225,7 +233,12 @@ const cleanup = (
 };
 
 // restart
-const restartServer = (httpServer, intervalList, producerList, consumer) => {
+const restartServer = (
+	httpServer,
+	intervalList,
+	producerList,
+	consumerList,
+) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
@@ -233,7 +246,10 @@ const restartServer = (httpServer, intervalList, producerList, consumer) => {
 	producerList.forEach((producer) => {
 		producer.close();
 	});
-	consumer.close();
+
+	consumerList.forEach((consumer) => {
+		consumer.close();
+	});
 
 	httpServer.close(() => {
 		console.log('Server closed. Restarting...');
