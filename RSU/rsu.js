@@ -33,7 +33,8 @@ const initServer = () => {
 
 	let recSpeed;
 
-	const reportsList = []; // list of all alive reports
+	let reportsList = []; // list of all alive reports
+	let newReportsList = []; // list of all new reports
 
 	// RabbitMQ parameter
 	const heartbeatQueue = 'heartbeat';
@@ -50,23 +51,28 @@ const initServer = () => {
 		}
 	};
 
+	const updateReports = (msg) => {
+		reportsList = msg; // backend return list of current available incident reports
+		newReportsList.forEach((item) => {
+			if (
+				reportsList.find(
+					(report) => JSON.stringify(report) === JSON.stringify(item),
+				)
+			) {
+				newReportsList = newReportsList.filter(
+					(report) => JSON.stringify(report) !== JSON.stringify(item),
+				); // remove newReport from newReportsList
+			} else {
+				reportsList.push(item);
+			}
+		});
+		io.emit('incident report', reportsList); // emit all reports to obu
+	};
+
 	const initProducer = (queueName, isDurable = false) => {
 		const producer = Producer(queueName, isDurable);
 		producer.connect();
 		return producer;
-	};
-
-	const updateReports = (msg) => {
-		reportsList = msg; // backend return list of current available incident reports
-		emitReports();
-	};
-
-	const emitReports = () => {
-		if (reportsList.length !== 0) {
-			reportsList.forEach((report) => {
-				io.emit('incident report', report);
-			});
-		}
 	};
 
 	// RabbitMQ
@@ -84,14 +90,13 @@ const initServer = () => {
 			connectedCarId.set(socket.id, message['id']);
 		});
 
-		socket.on('incident report', (message) => {
+		socket.on('new incident report', (message) => {
 			message['rsu_id'] = id;
 			if (isActive) {
-				if (!reportsList.includes(message)) {
-					reportsList.push(message);
-					socket.broadcast.emit('incident report', message);
-					newReportProducer.publish(JSON.stringify(message));
-				}
+				newReportsList.push(message);
+				let allReportsList = reportsList.concat(newReportsList);
+				socket.emit('incident report', allReportsList); // send ALL reports to obu
+				newReportProducer.publish(JSON.stringify(message)); // produce new report to backend
 			}
 		});
 

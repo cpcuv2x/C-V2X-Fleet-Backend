@@ -37,7 +37,7 @@ const emitReport = setInterval(() => {
 		longitude: longitude,
 		timestamp: new Date(),
 	};
-	socket.emit('incident report', (message) => {
+	socket.emit('new incident report', (message) => {
 		console.log('Sent incident:', message);
 	});
 }, 10000);
