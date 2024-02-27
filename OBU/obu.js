@@ -36,20 +36,28 @@ const initServer = () => {
 
 	// RSU data
 	let rsuIp = 'localhost'; // mock
-	let rsuPort = 8000; // mock
+	let rsuPort = 8001; // mock
 	let rsuId;
 	let recSpeed;
 	let rsuLatitude;
 	let rsuLongitude;
 
 	// RabbitMQ parameters
-	const heartbeatKey = 'heartbeat_obu';
-	const locationKey = 'location_obu';
-	const speedKey = 'speed_obu';
-	const emergencyKey = 'emergency_obu';
+	const heartbeatQueue = 'heartbeat';
+	const locationQueue = 'location';
+	const speedQueue = 'car_speed';
+	const emergencyQueue = 'emergency';
 
-	const producer = Producer();
-	producer.connect();
+	const initProducer = (queueName, isDurable = false) => {
+		const producer = Producer(queueName, isDurable);
+		producer.connect();
+		return producer;
+	};
+
+	const heartbeatProducer = initProducer(heartbeatQueue);
+	const locationProducer = initProducer(locationQueue);
+	const speedProducer = initProducer(speedQueue);
+	const emergencyProducer = initProducer(emergencyQueue, true);
 
 	// connect to RSU
 	const socket = io(`http://${rsuIp}:${rsuPort}`);
@@ -91,9 +99,8 @@ const initServer = () => {
 
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
-			message['status'] = 'PENDING';
 			if (isActive) {
-				producer.publish(emergencyKey, JSON.stringify(message));
+				emergencyProducer.publish(JSON.stringify(message));
 				console.log(message);
 			}
 		});
@@ -111,7 +118,7 @@ const initServer = () => {
 				unit: 'km/h',
 				latitude: latitude,
 				longitude: longitude,
-				timestamp: Date(),
+				timestamp: new Date(),
 			});
 		}
 	}, 1000);
@@ -124,7 +131,7 @@ const initServer = () => {
 				unit: 'km/h',
 				latitude: rsuLatitude,
 				longitude: rsuLongitude,
-				timestamp: Date(),
+				timestamp: new Date(),
 			});
 		}
 	}, 1000);
@@ -137,10 +144,10 @@ const initServer = () => {
 			data: {
 				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
 			},
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
-			producer.publish(heartbeatKey, JSON.stringify(message));
+			heartbeatProducer.publish(JSON.stringify(message));
 			console.log('produce heartbeat');
 		}
 	}, 1000);
@@ -151,10 +158,10 @@ const initServer = () => {
 			id: id,
 			latitude: latitude,
 			longitude: longitude,
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
-			producer.publish(locationKey, JSON.stringify(message));
+			locationProducer.publish(JSON.stringify(message));
 			console.log('produce location');
 		}
 	}, 1000);
@@ -165,10 +172,10 @@ const initServer = () => {
 			id: id,
 			velocity: speed,
 			unit: 'km/h',
-			timestamp: Date(),
+			timestamp: new Date(),
 		};
 		if (isActive) {
-			producer.publish(speedKey, JSON.stringify(message));
+			speedProducer.publish(JSON.stringify(message));
 		}
 	}, 1000);
 
@@ -179,7 +186,10 @@ const initServer = () => {
 		httpServer,
 		socket,
 		frontendIo,
-		producer,
+		heartbeatProducer,
+		locationProducer,
+		speedProducer,
+		emergencyProducer,
 		emitCarId,
 		emitCarInfo,
 		emitRsuInfo,
@@ -195,7 +205,10 @@ const start = () => {
 		httpServer,
 		socket,
 		frontendIo,
-		producer,
+		heartbeatProducer,
+		locationProducer,
+		speedProducer,
+		emergencyProducer,
 		emitCarId,
 		emitCarInfo,
 		emitRsuInfo,
@@ -213,33 +226,50 @@ const start = () => {
 		produceSpeed,
 	];
 
+	const producerList = [
+		heartbeatProducer,
+		locationProducer,
+		speedProducer,
+		emergencyProducer,
+	];
+
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producerList);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList);
+		restartServer(httpServer, intervalList, producerList);
 	});
 
 	process.on('SIGINT', () => {
 		console.log('Received SIGINT. Shutting down gracefully...');
-		cleanup(intervalList, socket, frontendIo, httpServer);
+		cleanup(intervalList, socket, frontendIo, httpServer, producerList);
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', () => {
 		console.log('Received SIGTERM. Shutting down gracefully...');
-		cleanup(intervalList, socket, frontendIo, httpServer);
+		cleanup(intervalList, socket, frontendIo, httpServer, producerList);
 		process.exit(0);
 	});
 };
 
-const cleanup = (intervalList, clientSocket, serverSocket, httpServer) => {
+const cleanup = (
+	intervalList,
+	clientSocket,
+	serverSocket,
+	httpServer,
+	producerList,
+) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
+	});
+
+	producerList.forEach((producer) => {
+		producer.close();
 	});
 
 	clientSocket.disconnect();
@@ -254,10 +284,15 @@ const cleanup = (intervalList, clientSocket, serverSocket, httpServer) => {
 };
 
 // restart
-const restartServer = (httpServer, intervalList) => {
+const restartServer = (httpServer, intervalList, producerList) => {
 	intervalList.forEach((item) => {
 		clearInterval(item);
 	});
+
+	producerList.forEach((producer) => {
+		producer.close();
+	});
+
 	httpServer.close(() => {
 		console.log('Server closed. Restarting...');
 		start();

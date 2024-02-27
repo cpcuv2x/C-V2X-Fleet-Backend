@@ -19,7 +19,16 @@ const exat_route = [
 	{ latitude: 13.75003, longitude: 100.56742 },
 	{ latitude: 13.74995, longitude: 100.56742 },
 	{ latitude: 13.74987, longitude: 100.56742 },
-	{ latitude: 13.75027, longitude: 100.56659 },
+	{ latitude: 13.74982, longitude: 100.56726 },
+	{ latitude: 13.74972, longitude: 100.56674 },
+	{ latitude: 13.74987, longitude: 100.56605 },
+	{ latitude: 13.75017, longitude: 100.56568 },
+	{ latitude: 13.75049, longitude: 100.56568 },
+	{ latitude: 13.75079, longitude: 100.56572 },
+	{ latitude: 13.75089, longitude: 100.56601 },
+	{ latitude: 13.75079, longitude: 100.56646 },
+	{ latitude: 13.75071, longitude: 100.56687 },
+	{ latitude: 13.75066, longitude: 100.56725 },
 ];
 
 module.exports = {

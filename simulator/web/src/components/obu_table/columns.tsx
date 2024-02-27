@@ -33,11 +33,12 @@ export const columns: ColumnDef<OBU>[] = [
 		},
 	},
 	{
-		accessorKey: 'location',
+		accessorKey: 'route',
 		header: 'Location',
 		cell: ({ row }) => {
 			const id = row.getValue<string>('id');
-			return <Location id={id} />;
+			const route = row.getValue<string>('route');
+			return <Location id={id} route={route} />;
 		},
 	},
 ];
