@@ -189,15 +189,15 @@ const start = () => {
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		// restartServer(httpServer, intervalList, producerList, consumer);
-		cleanup(intervalList, io, httpServer, producerList, consumer);
+		// restartServer(httpServer, intervalList, producerList, consumerList);
+		cleanup(intervalList, io, httpServer, producerList, consumerList);
 		process.exit(0);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		// restartServer(httpServer, intervalList, producerList, consumer);
-		cleanup(intervalList, io, httpServer, producerList, consumer);
+		// restartServer(httpServer, intervalList, producerList, consumerList);
+		cleanup(intervalList, io, httpServer, producerList, consumerList);
 		process.exit(0);
 	});
 
