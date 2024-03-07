@@ -84,6 +84,7 @@ const initServer = () => {
 				recommend_speed: recSpeed,
 				unit: 'km/h',
 				timestamp: new Date(),
+				// connected_OBU: [...connectedCarId.values()], // for demo
 			});
 		}
 		// console.log('emit rec speed');
@@ -155,12 +156,16 @@ const start = () => {
 	// error handler
 	process.on('uncaughtException', (err) => {
 		console.error('Uncaught Exception:', err);
-		restartServer(httpServer, intervalList, producerList, consumer);
+		// restartServer(httpServer, intervalList, producerList, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumer);
+		process.exit(0);
 	});
 
 	process.on('unhandledRejection', (err, promise) => {
 		console.error('Unhandled Promise Rejection:', err);
-		restartServer(httpServer, intervalList, producerList, consumer);
+		// restartServer(httpServer, intervalList, producerList, consumer);
+		cleanup(intervalList, io, httpServer, producerList, consumer);
+		process.exit(0);
 	});
 
 	process.on('SIGINT', () => {
