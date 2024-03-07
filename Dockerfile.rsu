@@ -1,0 +1,22 @@
+# should contain rsu.js, consumer, producer
+
+FROM node:20.11.0
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY .env ./
+
+COPY /RabbitMQ RabbitMQ/
+
+COPY /RSU RSU/
+
+# rsu default port
+EXPOSE 8001
+
+ENV PORT_NUMBER=8001
+
+CMD node RSU/rsu.js ${PORT_NUMBER}, ${ID}

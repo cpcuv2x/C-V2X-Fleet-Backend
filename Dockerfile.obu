@@ -1,0 +1,22 @@
+# should contain obu.js, producer
+
+FROM node:20.11.0
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY .env ./
+
+COPY /RabbitMQ/producer.js RabbitMQ/
+
+COPY /OBU OBU/
+
+# obu default port
+EXPOSE 8002
+
+ENV PORT_NUMBER=8002
+ 
+CMD node OBU/obu.js ${PORT_NUMBER}, ${ID}
