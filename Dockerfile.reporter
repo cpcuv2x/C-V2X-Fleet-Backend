@@ -1,0 +1,18 @@
+# should contain report.js
+
+FROM node:20.11.0
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY /Report ./
+
+# reporter default port
+EXPOSE 8003
+
+ENV PORT_NUMBER=8003
+
+CMD node report.js ${PORT_NUMBER}, ${ID}
