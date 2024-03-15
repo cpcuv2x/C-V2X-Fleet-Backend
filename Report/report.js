@@ -6,7 +6,6 @@ const io = require('socket.io-client');
 const port = process.argv[2];
 const id = process.argv[3];
 
-let isActive;
 let latitude;
 let longitude;
 
@@ -31,14 +30,6 @@ socket.on('disconnect', () => {
 
 // for sim
 module.exports = {
-	// isActive
-	getActiveStatus: function () {
-		return isActive;
-	},
-	setActiveStatus: function (active) {
-		isActive = active;
-	},
-
 	// latitude
 	getLatitude: function () {
 		return latitude;
@@ -57,16 +48,14 @@ module.exports = {
 
 	// emit new report
 	sendNewReport: function (reportType) {
-		if (isActive) {
-			message = {
-				type: reportType,
-				latitude: latitude,
-				longitude: longitude,
-				timestamp: new Date(),
-			};
-			socket.emit('new incident report', (message) => {
-				console.log('Sent incident:', message);
-			});
-		}
+		message = {
+			type: reportType,
+			latitude: latitude,
+			longitude: longitude,
+			timestamp: new Date(),
+		};
+		socket.emit('new incident report', (message) => {
+			console.log('Sent incident:', message);
+		});
 	},
 };
