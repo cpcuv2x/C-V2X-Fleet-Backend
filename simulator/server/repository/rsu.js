@@ -2,7 +2,7 @@ function getRSUdata() {
 	const data = [
 		{
 			id: '65c6387e77590d0d069dcdb3',
-			port: '32347',
+			port: '8001',
 			name: 'RSU01',
 		},
 		{

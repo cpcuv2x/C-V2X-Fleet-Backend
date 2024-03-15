@@ -5,20 +5,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { updateOBU } from '@/services/obu';
+import { updateReporter } from '@/services/report';
 
 interface LocationProps {
-    id: string;
     route: string;
 }
 
 export default function Location(props: LocationProps) {
-    const { id, route } = props;
+    const { route } = props;
     return (
         <div className="min-w-fit w-[180px] flex flex-col gap-2">
             <h2 className="font-bold">Simulation route</h2>
             <Select
-                onValueChange={(value) => updateOBU(id, { route: value })}
+                onValueChange={(value) => updateReporter({ location: value })}
                 defaultValue={route}
             >
                 <SelectTrigger className="w-[130px] min-w-fit">

@@ -38,6 +38,13 @@ for (const data of rsuData) {
 	};
 }
 
+// Reporter data
+const REPORTER_MAP = {
+	heartbeat: null,
+	location: null,
+};
+const reporter_process = fork('reporter.js');
+
 app.use(cors());
 app.use(express.json());
 
@@ -119,6 +126,45 @@ app.post('/rsu/:id', (req, res) => {
 	}
 
 	res.json(RSU_MAP[id]);
+});
+
+app.get('/reporter', (req, res) => {
+	res.json(REPORTER_MAP);
+});
+
+app.post('/reporter', (req, res) => {
+	const data = req.body;
+
+	// Update the status
+	const heartbeat = data.heartbeat;
+	if (heartbeat) {
+		REPORTER_MAP.heartbeat = heartbeat;
+		reporter_process.send({
+			type: 'heartbeat',
+			value: heartbeat,
+		});
+	}
+
+	// Update the position of the Reporter
+	const location = data.location;
+	if (location) {
+		REPORTER_MAP.location = location;
+		reporter_process.send({
+			type: 'location',
+			value: location,
+		});
+	}
+
+	// Post new incident
+	const incident = data.incident;
+	if (incident) {
+		reporter_process.send({
+			type: 'incident',
+			value: incident,
+		});
+	}
+
+	res.json(REPORTER_MAP);
 });
 
 app.listen(8000, () => {

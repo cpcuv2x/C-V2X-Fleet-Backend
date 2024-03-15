@@ -5,21 +5,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { updateOBU } from "@/services/obu"
+
 import { Status } from "@/constant"
+import { updateReporter } from "@/services/report"
 
 interface HeartbeatProps {
-    id: string
     heartbeat: Exclude<Status, Status.WARNING>
 }
 
 export default function Heartbeat(props: HeartbeatProps) {
-    const { id, heartbeat } = props
+    const { heartbeat } = props
     return (
         <div className="flex flex-wrap gap-6">
             <div className="flex flex-col gap-2">
                 <h2 className="font-bold">Status</h2>
-                <Select onValueChange={(value) => updateOBU(id, { heartbeat: value })}>
+                <Select onValueChange={(value) => updateReporter({ heartbeat: value })}>
                     <SelectTrigger defaultValue={heartbeat} className="w-[150px]">
                         <SelectValue placeholder={heartbeat} />
                     </SelectTrigger>

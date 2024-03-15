@@ -1,34 +1,31 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import Heartbeat from './heartbeat';
-import { Reporter as TReporter } from '@/types/reporter';
+import { Reporter } from '@/types/reporter';
 import Location from './location';
-import Reporter from './report';
+import ReportCol from './report';
 
-export const columns: ColumnDef<TReporter>[] = [
+export const columns: ColumnDef<Reporter>[] = [
     {
         accessorKey: 'heartbeat',
         header: 'Heartbeat',
         cell: ({ row }) => {
-            const id = row.getValue<string>('id');
             const heartbeat = row.getValue<any>('heartbeat');
-            return <Heartbeat id={id} heartbeat={heartbeat} />;
+            return <Heartbeat heartbeat={heartbeat} />;
         },
     },
     {
-        accessorKey: 'route',
+        accessorKey: 'location',
         header: 'Location',
         cell: ({ row }) => {
-            const id = row.getValue<string>('id');
-            const route = row.getValue<string>('route');
-            return <Location id={id} route={route} />;
+            const route = row.getValue<string>('location');
+            return <Location route={route} />;
         },
     },
     {
-        accessorKey: 'report',
         header: 'Sending Report',
         cell: () => {
-            return <Reporter />;
+            return <ReportCol />;
         }
     }
 ];
