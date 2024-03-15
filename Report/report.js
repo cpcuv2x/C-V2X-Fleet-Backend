@@ -6,6 +6,7 @@ const io = require('socket.io-client');
 const port = process.argv[2];
 const id = process.argv[3];
 
+let isActive;
 let latitude;
 let longitude;
 
@@ -28,16 +29,44 @@ socket.on('disconnect', () => {
 	console.log('Disconnected from the server');
 });
 
-// mock report
-const emitReport = setInterval(() => {
-	message = {
-		type: TYPE[Math.floor(Math.random() * 4)],
-		detail: 'mock incident report',
-		latitude: latitude,
-		longitude: longitude,
-		timestamp: new Date(),
-	};
-	socket.emit('new incident report', (message) => {
-		console.log('Sent incident:', message);
-	});
-}, 10000);
+// for sim
+module.exports = {
+	// isActive
+	getActiveStatus: function () {
+		return isActive;
+	},
+	setActiveStatus: function (active) {
+		isActive = active;
+	},
+
+	// latitude
+	getLatitude: function () {
+		return latitude;
+	},
+	setLatitude: function (newLatitude) {
+		latitude = newLatitude;
+	},
+
+	// longitude
+	getLongitude: function () {
+		return longitude;
+	},
+	setLongitude: function (newLongitude) {
+		longitude = newLongitude;
+	},
+
+	// emit new report
+	sendNewReport: function (reportType) {
+		if (isActive) {
+			message = {
+				type: reportType,
+				latitude: latitude,
+				longitude: longitude,
+				timestamp: new Date(),
+			};
+			socket.emit('new incident report', (message) => {
+				console.log('Sent incident:', message);
+			});
+		}
+	},
+};
