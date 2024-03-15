@@ -76,6 +76,10 @@ const initServer = () => {
 		frontendIo.emit('incident report', message); // forward reportsList to frontend
 	});
 
+	socket.on('new report notification', (message) => {
+		frontendIo.emit('new report notification', message); // forward new report noti to frontend
+	});
+
 	socket.on('recommend speed', (message) => {
 		console.log('Received recommend speed:', message);
 		recSpeed = message['recommend_speed'];

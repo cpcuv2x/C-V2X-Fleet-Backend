@@ -96,6 +96,10 @@ const initServer = () => {
 				newReportsList.push(message);
 				let allReportsList = reportsList.concat(newReportsList);
 				socket.emit('incident report', allReportsList); // send ALL reports to obu
+				socket.emit(
+					'new report notification',
+					`new report from RSU ${id} is sent`,
+				); // new report noti
 				newReportProducer.publish(JSON.stringify(message)); // produce new report to backend
 			}
 		});
