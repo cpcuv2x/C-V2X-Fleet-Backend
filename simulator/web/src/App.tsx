@@ -3,6 +3,7 @@ import './App.css'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OBU_table from './components/obu_table'
 import RSU_table from './components/rsu_table'
+import Reporter from './components/reporter'
 
 function App() {
   return (
@@ -12,12 +13,16 @@ function App() {
         <TabsList>
           <TabsTrigger value="obu">OBU</TabsTrigger>
           <TabsTrigger value="rsu">RSU</TabsTrigger>
+          <TabsTrigger value="reporter">Reporter</TabsTrigger>
         </TabsList>
         <TabsContent value="obu" className='w-full'>
           <OBU_table />
         </TabsContent>
         <TabsContent value="rsu">
           <RSU_table />
+        </TabsContent>
+        <TabsContent value="reporter">
+          <Reporter />
         </TabsContent>
       </Tabs>
     </>
