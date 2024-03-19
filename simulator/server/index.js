@@ -18,7 +18,7 @@ for (const data of obuData) {
 		id: data.id,
 		name: data.name,
 		speed: undefined,
-		heartbeat: undefined,
+		heartbeat: 'INACTIVE',
 		route: undefined,
 	};
 }
@@ -33,7 +33,7 @@ for (const data of rsuData) {
 	RSU_MAP[data.id] = {
 		id: data.id,
 		name: data.name,
-		heartbeat: undefined,
+		heartbeat: 'INACTIVE',
 		location: undefined,
 	};
 }
