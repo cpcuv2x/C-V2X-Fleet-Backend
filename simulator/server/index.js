@@ -153,7 +153,7 @@ app.post('/reporter', (req, res) => {
 		});
 	}
 
-	res.json(REPORTER_MAP);
+	res.status(201).json(REPORTER_MAP);
 });
 
 app.listen(8000, () => {

@@ -1,6 +1,8 @@
 import './App.css'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Toaster } from "@/components/ui/toaster"
+
 import OBU_table from './components/obu_table'
 import RSU_table from './components/rsu_table'
 import Reporter from './components/reporter'
@@ -25,6 +27,7 @@ function App() {
           <Reporter />
         </TabsContent>
       </Tabs>
+      <Toaster />
     </>
   )
 }

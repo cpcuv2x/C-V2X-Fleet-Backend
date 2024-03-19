@@ -7,7 +7,16 @@ export async function getReporter(): Promise<Reporter[]> {
 	return [data];
 }
 
-export async function updateReporter(payload: {}) {
+type payload = {
+	incident: string;
+};
+
+export async function updateReporter(payload: payload) {
+	const data = await getReporter();
+	if (payload.incident && !data[0]['location']) {
+		console.error('No location found');
+		return 400;
+	}
 	const { status } = await axios.post(`reporter`, payload);
 	return status;
 }
