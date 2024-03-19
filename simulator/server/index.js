@@ -40,7 +40,6 @@ for (const data of rsuData) {
 
 // Reporter data
 const REPORTER_MAP = {
-	heartbeat: null,
 	location: null,
 };
 const reporter_process = fork('reporter.js');
@@ -134,16 +133,6 @@ app.get('/reporter', (req, res) => {
 
 app.post('/reporter', (req, res) => {
 	const data = req.body;
-
-	// Update the status
-	const heartbeat = data.heartbeat;
-	if (heartbeat) {
-		REPORTER_MAP.heartbeat = heartbeat;
-		reporter_process.send({
-			type: 'heartbeat',
-			value: heartbeat,
-		});
-	}
 
 	// Update the position of the Reporter
 	const location = data.location;

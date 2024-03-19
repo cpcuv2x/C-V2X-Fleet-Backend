@@ -1,5 +1,4 @@
 const {
-	setActiveStatus,
 	setLatitude,
 	setLongitude,
 	sendNewReport,
@@ -24,13 +23,6 @@ process.on('message', (message) => {
 			}
 			if (value === 'chula') {
 				change_route('chula', chula_route);
-			}
-			break;
-		case 'heartbeat':
-			if (String(value).toLowerCase() === 'active') {
-				setActiveStatus(true);
-			} else if (String(value).toLowerCase() === 'inactive') {
-				setActiveStatus(false);
 			}
 			break;
 		case 'incident':
