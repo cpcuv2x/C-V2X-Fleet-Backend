@@ -54,8 +54,6 @@ module.exports = {
 			longitude: longitude,
 			timestamp: new Date(),
 		};
-		socket.emit('new incident report', (message) => {
-			console.log('Sent incident:', message);
-		});
+		socket.emit('new incident report', message);
 	},
 };
