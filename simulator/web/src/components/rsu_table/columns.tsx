@@ -4,6 +4,7 @@ import { RSU } from '@/types/rsu';
 import Heartbeat from './heartbeat';
 // import Connected_OBU from './connected_obu';
 import Location from './location';
+import RowAction from './row_action';
 
 export const columns: ColumnDef<RSU>[] = [
 	{
@@ -39,4 +40,10 @@ export const columns: ColumnDef<RSU>[] = [
 			return <Location id={id} location={location} />;
 		},
 	},
+	{
+		id: 'actions',
+		cell: ({ row }) => {
+			return <RowAction id={row.getValue<string>('id')} />;
+		}
+	}
 ];
