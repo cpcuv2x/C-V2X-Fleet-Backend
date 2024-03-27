@@ -95,8 +95,8 @@ const initServer = () => {
 			if (isActive) {
 				newReportsList.push(message);
 				let allReportsList = reportsList.concat(newReportsList);
-				socket.emit('incident report', allReportsList); // send ALL reports to obu
-				socket.emit('new report notification', {
+				io.emit('incident report', allReportsList); // send ALL reports to obu
+				io.emit('new report notification', {
 					type: message['type'],
 					timestamp: message['timestamp'],
 				}); // new report noti
