@@ -26,12 +26,12 @@ process.on('message', (message) => {
 			}
 			break;
 		case 'incident':
-			if (value === 'exat') {
+			if (location_route === 'exat') {
 				const { latitude, longitude } = randomElement(exat_route);
 				setLatitude(latitude);
 				setLongitude(longitude);
 			}
-			if (value === 'chula') {
+			if (location_route === 'chula') {
 				const { latitude, longitude } = randomElement(chula_route);
 				setLatitude(latitude);
 				setLongitude(longitude);
