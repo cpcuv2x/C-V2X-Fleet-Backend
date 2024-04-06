@@ -26,6 +26,19 @@ process.on('message', (message) => {
 			}
 			break;
 		case 'incident':
+			if (value === 'exat') {
+				const { latitude, longitude } = randomElement(exat_route);
+				setLatitude(latitude);
+				setLongitude(longitude);
+			}
+			if (value === 'chula') {
+				const { latitude, longitude } = randomElement(chula_route);
+				setLatitude(latitude);
+				setLongitude(longitude);
+			} else {
+				console.error('Invalid location:', value);
+				return;
+			}
 			sendNewReport(value);
 			break;
 	}
