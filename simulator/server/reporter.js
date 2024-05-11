@@ -6,7 +6,7 @@ const {
 
 const { exat_route } = require('./static/exat_route.js');
 const { chula_route } = require('./static/chula_route.js');
-const { randomElement } = require('./utils.js');
+const { randomElement, addLocNoise } = require('./utils.js');
 
 let location_route = null;
 
@@ -26,6 +26,21 @@ process.on('message', (message) => {
 			}
 			break;
 		case 'incident':
+			if (location_route === 'exat') {
+				const { latitude, longitude } = randomElement(exat_route);
+				const noise = addLocNoise(latitude, longitude);
+				setLatitude(noise.latitude);
+				setLongitude(noise.longitude);
+			}
+			if (location_route === 'chula') {
+				const { latitude, longitude } = randomElement(chula_route);
+				const noise = addLocNoise(latitude, longitude);
+				setLatitude(noise.latitude);
+				setLongitude(noise.longitude);
+			} else {
+				console.error('Invalid location:', value);
+				return;
+			}
 			sendNewReport(value);
 			break;
 	}
