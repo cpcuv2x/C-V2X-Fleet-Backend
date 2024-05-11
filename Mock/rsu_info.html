@@ -44,6 +44,18 @@
 				color: #62929e;
 				font-weight: bold;
 			}
+			.popup {
+				display: none;
+				position: fixed;
+				bottom: 20px;
+				left: 50%;
+				transform: translateX(-50%);
+				background-color: rgba(0, 0, 0, 0.8);
+				color: white;
+				padding: 10px 20px;
+				border-radius: 5px;
+				z-index: 999;
+			}
 		</style>
 	</head>
 	<body>
@@ -57,6 +69,9 @@
 			<p id="topic">
 				Send to OBU id(s): <span id="obu" class="highlight"></span>
 			</p>
+			<div id="popup" class="popup">
+				<span id="popupText"></span>
+			</div>
 		</div>
 		<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 		<script>
@@ -65,6 +80,8 @@
 			const speedElement = document.getElementById('speed');
 			const timeElement = document.getElementById('time');
 			const obuElement = document.getElementById('obu');
+			const popup = document.getElementById('popup');
+			const popupText = document.getElementById('popupText');
 
 			const updateInfo = (msg) => {
 				rsuElement.textContent = msg['rsu_id'];
@@ -75,9 +92,23 @@
 				obuElement.classList.add('highlight');
 			};
 
+			const displayPopup = (msg) => {
+				const incidentType = msg['type'];
+				const incidentTime = msg['timestamp'];
+				popupText.textContent = `new incident report: ${incidentType} on ${incidentTime}`;
+				popup.style.display = 'block';
+				setTimeout(function () {
+					popup.style.display = 'none';
+				}, 3000);
+			};
+
 			socket.on('recommend speed', (msg) => {
 				console.log(msg);
 				updateInfo(msg);
+			});
+
+			socket.on('new report notification', (msg) => {
+				displayPopup(msg);
 			});
 		</script>
 	</body>
