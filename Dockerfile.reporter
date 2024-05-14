@@ -10,9 +10,4 @@ RUN npm install
 
 COPY /Report ./
 
-# reporter default port
-EXPOSE 8003
-
-ENV PORT_NUMBER=8003
-
-CMD node report.js ${PORT_NUMBER}, ${ID}
+CMD node report.js
