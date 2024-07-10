@@ -15,11 +15,11 @@ const id = process.argv[3];
 // const ip = interfaces.lo0[0].address; // car's ip
 
 // sim data
-let isActive = false; // default
+let isActive = true; // default
 let isWarning;
 let speed;
-let latitude;
-let longitude;
+let latitude = 13;
+let longitude = 100;
 
 const initServer = () => {
 	// init server for send to frontend
