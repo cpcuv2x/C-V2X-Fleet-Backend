@@ -18,5 +18,5 @@ COPY /OBU OBU/
 EXPOSE 8002
 
 ENV PORT_NUMBER=8002
- 
-CMD node OBU/obu.js ${PORT_NUMBER}, ${ID}
+
+CMD node OBU/obu.js ${PORT_NUMBER} ${ID}

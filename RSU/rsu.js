@@ -13,7 +13,7 @@ const port = process.argv[2];
 const id = process.argv[3];
 
 // sim data
-let isActive = false; // default
+let isActive = true; // default
 let latitude;
 let longitude;
 
