@@ -15,11 +15,13 @@ const id = process.argv[3];
 // const ip = interfaces.lo0[0].address; // car's ip
 
 // sim data
-let isActive = false; // default
+//let isActive = false; // default
+let isActive = true;
 let isWarning;
 let speed;
-let latitude;
-let longitude;
+let latitude = 13.737069525441195;
+let longitude = 100.53304240520373;
+let driveMode = "manual";
 
 const initServer = () => {
 	// init server for send to frontend
@@ -98,7 +100,7 @@ const initServer = () => {
 		}
 	}, 1000);
 
-	// socket (send to OBU frontend)
+		// socket (send to OBU frontend)
 	frontendIo.on('connection', async (socket) => {
 		console.log('connected to frontend');
 
@@ -117,14 +119,18 @@ const initServer = () => {
 
 	const emitCarInfo = setInterval(() => {
 		if (isActive) {
-			frontendIo.emit('car info', {
+			message = {
 				id: id,
 				velocity: speed,
 				unit: 'km/h',
 				latitude: latitude,
 				longitude: longitude,
 				timestamp: new Date(),
-			});
+				mode: driveMode,
+			};
+			frontendIo.emit('car info', {message});
+			// console.log('emit car info');
+			// console.log(message);
 		}
 	}, 1000);
 
@@ -148,12 +154,13 @@ const initServer = () => {
 			id: id,
 			data: {
 				status: isWarning ? 'WARNING' : isActive ? 'ACTIVE' : 'INACTIVE',
+				drive_mode: driveMode,
 			},
 			timestamp: new Date(),
 		};
 		if (isActive) {
 			heartbeatProducer.publish(JSON.stringify(message));
-			console.log('produce heartbeat');
+			// console.log('produce heartbeat');
 		}
 	}, 1000);
 
@@ -167,7 +174,7 @@ const initServer = () => {
 		};
 		if (isActive) {
 			locationProducer.publish(JSON.stringify(message));
-			console.log('produce location');
+			//console.log('produce location');
 		}
 	}, 1000);
 
@@ -350,5 +357,13 @@ module.exports = {
 	},
 	setLongitude: function (newLongitude) {
 		longitude = newLongitude;
+	},
+
+	// drive mode
+	getDriveMode: function() {
+		return driveMode;
+	},
+	setDriveMode: function (newDriveMode) {
+		driveMode = newDriveMode;
 	},
 };
