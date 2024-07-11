@@ -64,6 +64,9 @@ const initServer = () => {
 	// connect to RSU
 	const socket = io(`http://${rsuIp}:${rsuPort}`);
 
+	// connect to Control Center Backend
+	const ccBackendSocket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_URL || "ws://localhost:3426");
+
 	// socket (connected to RSU)
 	socket.on('connect', () => {
 		console.log('Connected to the server');
@@ -115,6 +118,13 @@ const initServer = () => {
 		socket.on('disconnect', () => {
 			console.log('frontend disconnect');
 		});
+	});
+
+	// socket (to control center backend)
+	ccBackendSocket.emit('join', id)
+
+	ccBackendSocket.on('emergency_stop', (message) => {
+		console.log('emergency stop received from control center');
 	});
 
 	const emitCarInfo = setInterval(() => {
