@@ -14,6 +14,17 @@ const id = process.argv[3];
 // const interfaces = os.networkInterfaces();
 // const ip = interfaces.lo0[0].address; // car's ip
 
+// log
+const fs = require('fs');
+const util = require('util');
+const log_file = fs.createWriteStream(__dirname + '/debug.log', {flags : 'a'});
+const log_stdout = process.stdout;
+
+console.log = function(d) { //
+  log_file.write(new Date() + '\t' + util.format(d) + '\n');
+  log_stdout.write(new Date() + '\t' + util.format(d) + '\n');
+};
+
 // sim data
 //let isActive = false; // default
 let isActive = true;
@@ -67,6 +78,9 @@ const initServer = () => {
 	// connect to RSU
 	const socket = io(`http://${rsuIp}:${rsuPort}`);
 
+	// connect to Control Center Backend
+	const ccBackendSocket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_URL || "ws://localhost:3426");
+
 	// socket (connected to RSU)
 	socket.on('connect', () => {
 		console.log('Connected to the server');
@@ -118,6 +132,21 @@ const initServer = () => {
 		socket.on('disconnect', () => {
 			console.log('frontend disconnect');
 		});
+	});
+
+	// socket (to control center backend)
+	ccBackendSocket.emit('join', id)
+
+	ccBackendSocket.on('emergency_stop_req', (car_id) => {
+		console.log('emergency stop received from control center');
+		// send signal to car //
+		// TODO
+		////////////////////////
+		ccBackendSocket.emit('emergency_stop_res', {
+			car_id: car_id,
+			success: true, 
+		});
+		console.log('emit emergency stop success back to control center');
 	});
 
 	const emitCarInfo = setInterval(() => {
