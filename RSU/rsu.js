@@ -150,8 +150,9 @@ const initServer = () => {
 		};
 		if (isActive) {
 			heartbeatProducer.publish(JSON.stringify(message));
+			console.log(JSON.stringify(message));
 		}
-		// console.log('produce heartbeat');
+		console.log('produce heartbeat');
 	}, 1000);
 
 	httpServer.listen(port, () => {

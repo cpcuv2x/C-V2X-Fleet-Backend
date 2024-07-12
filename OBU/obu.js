@@ -18,10 +18,13 @@ const id = process.argv[3];
 //let isActive = false; // default
 let isActive = true;
 let isWarning;
-let speed;
+let speed = "N/A";
 let latitude = 13.737069525441195;
 let longitude = 100.53304240520373;
-let driveMode = "manual";
+let driveMode = "autonomous";
+
+// mech socket 
+const mechSocketPort = process.env.MECH_SOCKET_PORT || 8000;
 
 const initServer = () => {
 	// init server for send to frontend
@@ -161,6 +164,7 @@ const initServer = () => {
 		if (isActive) {
 			heartbeatProducer.publish(JSON.stringify(message));
 			// console.log('produce heartbeat');
+			// console.log(JSON.stringify(message));
 		}
 	}, 1000);
 
@@ -194,6 +198,51 @@ const initServer = () => {
 	httpServer.listen(port, () => {
 		console.log(`server running at http://localhost:${port}`);
 	});
+
+	// Receive data from mech
+	var udp = require('dgram');
+	// creating a udp server
+	var mechServer = udp.createSocket('udp4');
+	// emits when any error occurs
+	mechServer.on('error',function(error){
+		console.log('Error: ' + error);
+		mechServer.close();
+	});
+
+	// receive new datagram msg
+	mechServer.on('message',function(msg,info){
+		// console.log(JSON.parse(msg));
+		let jsonData = JSON.parse(msg);
+		console.log(jsonData);
+		if(jsonData?.speed){
+			speed = parseFloat(jsonData.speed);
+		}
+		if(jsonData?.lat){
+			latitude = parseFloat(jsonData.lat);
+		}
+		if(jsonData?.lon){
+			longitude = parseFloat(jsonData.lon);
+		}
+		if(jsonData?.driveMode){
+			driveMode = jsonData.driveMode;
+		}		
+	});
+
+	//emits when socket is ready and listening for datagram msgs
+	mechServer.on('listening',function(){
+		var address = mechServer.address();
+		var port = address.port;
+		var ipaddr = address.address;
+		console.log('MechServer is listening at' + ipaddr + ":" + port);
+	});
+
+	//emits after the socket is closed using socket.close();
+	mechServer.on('close',function(){
+		console.log('MechSocket is closed !');
+	});
+
+	mechServer.bind(mechSocketPort);
+	
 	return {
 		httpServer,
 		socket,
