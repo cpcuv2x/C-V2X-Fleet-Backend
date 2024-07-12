@@ -14,6 +14,17 @@ const id = process.argv[3];
 // const interfaces = os.networkInterfaces();
 // const ip = interfaces.lo0[0].address; // car's ip
 
+// log
+const fs = require('fs');
+const util = require('util');
+const log_file = fs.createWriteStream(__dirname + '/debug.log', {flags : 'a'});
+const log_stdout = process.stdout;
+
+console.log = function(d) { //
+  log_file.write(new Date() + '\t' + util.format(d) + '\n');
+  log_stdout.write(new Date() + '\t' + util.format(d) + '\n');
+};
+
 // sim data
 //let isActive = false; // default
 let isActive = true;
@@ -21,7 +32,7 @@ let isWarning;
 let speed;
 let latitude = 13.737069525441195;
 let longitude = 100.53304240520373;
-let driveMode = "manual";
+let driveMode = "autonomous";
 
 const initServer = () => {
 	// init server for send to frontend
@@ -123,8 +134,16 @@ const initServer = () => {
 	// socket (to control center backend)
 	ccBackendSocket.emit('join', id)
 
-	ccBackendSocket.on('emergency_stop', (message) => {
+	ccBackendSocket.on('emergency_stop_req', (car_id) => {
 		console.log('emergency stop received from control center');
+		// send signal to car //
+		// TODO
+		////////////////////////
+		ccBackendSocket.emit('emergency_stop_res', {
+			car_id: car_id,
+			success: true, 
+		});
+		console.log('emit emergency stop success back to control center');
 	});
 
 	const emitCarInfo = setInterval(() => {
