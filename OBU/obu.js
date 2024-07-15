@@ -36,6 +36,10 @@ let driveMode = "autonomous";
 
 // mech socket 
 const mechSocketPort = process.env.MECH_SOCKET_PORT || 8000;
+const mechClientSocketPort = process.env.MECH_CLIENT_SOCKET_PORT || 12000;
+var udp = require('dgram');
+var mechServer = udp.createSocket('udp4');
+var mechClient = udp.createSocket('udp4');
 
 const initServer = () => {
 	// init server for send to frontend
@@ -139,9 +143,18 @@ const initServer = () => {
 
 	ccBackendSocket.on('emergency_stop_req', (car_id) => {
 		console.log('emergency stop received from control center');
-		// send signal to car //
-		// TODO
-		////////////////////////
+		// send signal to car
+		mechClient.connect(mechClientSocketPort,'127.0.0.1', err => {
+			if (err) console.error(err);
+			const message = Buffer.from('emergency stop');
+			mechClient.send(message, (err) => {
+				if (err) {
+					mechClient.error(err);
+				}
+				mechClient.close();
+			});
+		});
+		// send response back to control center
 		ccBackendSocket.emit('emergency_stop_res', {
 			car_id: car_id,
 			success: true, 
@@ -228,10 +241,6 @@ const initServer = () => {
 		console.log(`server running at http://localhost:${port}`);
 	});
 
-	// Receive data from mech
-	var udp = require('dgram');
-	// creating a udp server
-	var mechServer = udp.createSocket('udp4');
 	// emits when any error occurs
 	mechServer.on('error',function(error){
 		console.log('Error: ' + error);
