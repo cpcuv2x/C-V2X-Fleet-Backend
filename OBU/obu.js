@@ -29,7 +29,7 @@ console.log = function(d) { //
 //let isActive = false; // default
 let isActive = true;
 let isWarning;
-let speed = "N/A";
+let speed;
 let latitude = 13.737069525441195;
 let longitude = 100.53304240520373;
 let driveMode = "autonomous";
@@ -127,6 +127,8 @@ const initServer = () => {
 
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
+			message['latitude'] = latitude;
+			message['longitude'] = longitude;
 			if (isActive) {
 				emergencyProducer.publish(JSON.stringify(message));
 				console.log(message);
@@ -154,6 +156,9 @@ const initServer = () => {
 				mechClient.close();
 			});
 		});
+		// forward emergency to frontend
+		frontendIo.emit('emergency_stop', 'emergency stop');
+		console.log('forward emergency stop to frontend');
 		// send response back to control center
 		ccBackendSocket.emit('emergency_stop_res', {
 			car_id: car_id,
@@ -173,7 +178,7 @@ const initServer = () => {
 				timestamp: new Date(),
 				mode: driveMode,
 			};
-			frontendIo.emit('car info', {message});
+			frontendIo.emit('car info', message);
 			// console.log('emit car info');
 			// console.log(message);
 		}
@@ -271,7 +276,7 @@ const initServer = () => {
 		var address = mechServer.address();
 		var port = address.port;
 		var ipaddr = address.address;
-		console.log('MechServer is listening at' + ipaddr + ":" + port);
+		console.log('MechServer is listening at ' + ipaddr + ":" + port);
 	});
 
 	//emits after the socket is closed using socket.close();
