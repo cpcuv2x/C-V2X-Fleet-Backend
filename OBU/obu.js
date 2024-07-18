@@ -38,8 +38,12 @@ let driveMode = "autonomous";
 const mechSocketPort = process.env.MECH_SOCKET_PORT || 8000;
 const mechClientSocketPort = process.env.MECH_CLIENT_SOCKET_PORT || 12000;
 var udp = require('dgram');
+var net = require('net');
 var mechServer = udp.createSocket('udp4');
-var mechClient = udp.createSocket('udp4');
+var mechClient = net.Socket();
+// var mechClient = net.createConnection({ port: mechClientSocketPort }, () => {
+// 	console.log('connected to server!');
+// })
 
 const initServer = () => {
 	// init server for send to frontend
@@ -78,6 +82,82 @@ const initServer = () => {
 	const locationProducer = initProducer(locationQueue);
 	const speedProducer = initProducer(speedQueue);
 	const emergencyProducer = initProducer(emergencyQueue, true);
+
+	// socket server for mech client
+	// emits when any error occurs
+	mechServer.on('error',function(error){
+		console.error('Error: ' + error);
+		mechServer.close();
+	});
+
+	mechServer.on('connect',function(error){
+		console.error('Error: ' + error);
+		mechServer.close();
+	});
+
+	// receive new datagram msg
+	mechServer.on('message',function(msg,info){
+		console.log(JSON.parse(msg));
+		let jsonData = JSON.parse(msg);
+		console.log(jsonData);
+		if(jsonData?.speed){
+			speed = parseFloat(jsonData.speed);
+		}
+		if(jsonData?.lat){
+			latitude = parseFloat(jsonData.lat);
+		}
+		if(jsonData?.lon){
+			longitude = parseFloat(jsonData.lon);
+		}
+		if(jsonData?.driveMode){
+			driveMode = jsonData.driveMode;
+		}		
+	});
+
+	//emits when socket is ready and listening for datagram msgs
+	mechServer.on('listening',function(){
+		var address = mechServer.address();
+		var port = address.port;
+		var ipaddr = address.address;
+		console.log('MechServer is listening at ' + ipaddr + ":" + port);
+	});
+
+	//emits after the socket is closed using socket.close();
+	mechServer.on('close',function(){
+		console.log('MechSocket is closed !');
+	});
+
+	function connectToMech(message, attempt){
+		
+		mechClient.connect(mechClientSocketPort,()=>{
+			console.log("connect to mech server")
+			mechClient.write(message)
+			mechClient.destroy()
+			console.log("Successfully send to mech socket")
+		})
+
+		mechClient.on('error',function(error){
+			attempt = attempt + 1
+			console.log("try to reconnect (" + attempt + ")") 
+			if(attempt < 3){
+				reconnect(message, attempt)
+			} else {
+				console.log('Cannot connect to mech server: ' + error);
+			}
+		});
+
+		mechClient.on('end', () => {
+			console.log('disconnected from mech server');
+		});
+		
+	}
+
+	reconnect = (message, attempt) => {
+		setTimeout(() => {
+			mechClient.removeAllListeners() // the important line that enables you to reopen a connection
+			connectToMech(message, attempt)
+		}, 1000)
+	}
 
 	// connect to RSU
 	const socket = io(`http://${rsuIp}:${rsuPort}`);
@@ -121,7 +201,7 @@ const initServer = () => {
 		}
 	}, 1000);
 
-		// socket (send to OBU frontend)
+	// socket (send to OBU frontend)
 	frontendIo.on('connection', async (socket) => {
 		console.log('connected to frontend');
 
@@ -146,16 +226,14 @@ const initServer = () => {
 	ccBackendSocket.on('emergency_stop_req', (car_id) => {
 		console.log('emergency stop received from control center');
 		// send signal to car
-		mechClient.connect(mechClientSocketPort,'127.0.0.1', err => {
-			if (err) console.error(err);
-			const message = Buffer.from('emergency stop');
-			mechClient.send(message, (err) => {
-				if (err) {
-					mechClient.error(err);
-				}
-				mechClient.close();
-			});
-		});
+		const message = Buffer.from('emergency stop');
+		try{
+			connectToMech(message, 0);
+		} catch(e) {
+			console.log(e)
+		}
+		
+		
 		// forward emergency to frontend
 		frontendIo.emit('emergency_stop', 'emergency stop');
 		console.log('forward emergency stop to frontend');
@@ -244,44 +322,6 @@ const initServer = () => {
 
 	httpServer.listen(port, () => {
 		console.log(`server running at http://localhost:${port}`);
-	});
-
-	// emits when any error occurs
-	mechServer.on('error',function(error){
-		console.log('Error: ' + error);
-		mechServer.close();
-	});
-
-	// receive new datagram msg
-	mechServer.on('message',function(msg,info){
-		// console.log(JSON.parse(msg));
-		let jsonData = JSON.parse(msg);
-		console.log(jsonData);
-		if(jsonData?.speed){
-			speed = parseFloat(jsonData.speed);
-		}
-		if(jsonData?.lat){
-			latitude = parseFloat(jsonData.lat);
-		}
-		if(jsonData?.lon){
-			longitude = parseFloat(jsonData.lon);
-		}
-		if(jsonData?.driveMode){
-			driveMode = jsonData.driveMode;
-		}		
-	});
-
-	//emits when socket is ready and listening for datagram msgs
-	mechServer.on('listening',function(){
-		var address = mechServer.address();
-		var port = address.port;
-		var ipaddr = address.address;
-		console.log('MechServer is listening at ' + ipaddr + ":" + port);
-	});
-
-	//emits after the socket is closed using socket.close();
-	mechServer.on('close',function(){
-		console.log('MechSocket is closed !');
 	});
 
 	mechServer.bind(mechSocketPort);
