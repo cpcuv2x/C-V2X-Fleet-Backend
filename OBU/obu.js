@@ -226,7 +226,10 @@ const initServer = () => {
 	ccBackendSocket.on('emergency_stop_req', (car_id) => {
 		console.log('emergency stop received from control center');
 		// send signal to car
-		const message = Buffer.from('emergency stop');
+		let obj = {
+			"message": "emergency stop"
+		}
+		const message = Buffer.from(JSON.stringify(obj));
 		try{
 			connectToMech(message, 0);
 		} catch(e) {
