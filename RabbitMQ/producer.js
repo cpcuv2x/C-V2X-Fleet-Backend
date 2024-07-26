@@ -11,12 +11,13 @@ const Producer = (queueName, isDurable = false) => {
 	const connect = () => {
 		amqp.connect(rabbitMQ_URL, function (conn_err, conn) {
 			if (conn_err) {
-				throw conn_err;
+				console.log(conn_err);
+				return setTimeout(connect, 1000);
 			}
 			connection = conn;
 			connection.createChannel(function (channel_error, ch) {
 				if (channel_error) {
-					throw channel_error;
+					console.log(channel_error);
 				}
 
 				channel = ch;
@@ -26,7 +27,7 @@ const Producer = (queueName, isDurable = false) => {
 					function (error2, q) {
 						if (error2) {
 							connection.close();
-							throw error2;
+							console.log(error2);
 						}
 					},
 				);
@@ -35,7 +36,12 @@ const Producer = (queueName, isDurable = false) => {
 	};
 
 	const publish = (msg) => {
-		channel.sendToQueue(queueName, Buffer.from(msg));
+		try {
+			channel.sendToQueue(queueName, Buffer.from(msg));
+		} catch (err) {
+			console.log(err);
+			return setTimeout(connect, 1000);
+		}
 	};
 
 	const close = () => {
