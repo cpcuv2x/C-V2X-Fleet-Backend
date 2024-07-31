@@ -9,8 +9,8 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 // mock
-const port = process.argv[2];
-const id = process.argv[3];
+const port = process.env.OBU_SOCKET_PORT || 8001; 
+const id = process.env.CAR_IDENTIFIER;
 // const interfaces = os.networkInterfaces();
 // const ip = interfaces.lo0[0].address; // car's ip
 
