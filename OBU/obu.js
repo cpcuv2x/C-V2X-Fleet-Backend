@@ -11,6 +11,7 @@ const { Server } = require('socket.io');
 // mock
 const port = process.env.OBU_SOCKET_PORT || 8001; 
 const id = process.env.CAR_IDENTIFIER;
+
 // const interfaces = os.networkInterfaces();
 // const ip = interfaces.lo0[0].address; // car's ip
 
@@ -39,13 +40,14 @@ const mechSocketPort = process.env.MECH_SOCKET_PORT || 8000;
 const mechClientSocketPort = process.env.MECH_CLIENT_SOCKET_PORT || 12000;
 var udp = require('dgram');
 var net = require('net');
+
 var mechServer = udp.createSocket('udp4');
 var mechClient = net.Socket();
 // var mechClient = net.createConnection({ port: mechClientSocketPort }, () => {
 // 	console.log('connected to server!');
 // })
 
-const initServer = () => {
+const initServer = () => {	
 	// init server for send to frontend
 	const httpServer = createServer();
 	const frontendIo = new Server(httpServer, {
@@ -59,8 +61,8 @@ const initServer = () => {
 	});
 
 	// RSU data
-	let rsuIp = 'localhost'; // mock
-	let rsuPort = 8001; // mock
+	let rsuIp = '10.8.0.34'; // mock
+	let rsuPort = 8002; // mock
 	let rsuId;
 	let recSpeed;
 	let rsuLatitude;
@@ -97,11 +99,16 @@ const initServer = () => {
 
 	// receive new datagram msg
 	mechServer.on('message',function(msg,info){
-		console.log(JSON.parse(msg));
+		// console.log(JSON.parse(msg));
 		let jsonData = JSON.parse(msg);
-		console.log(jsonData);
+		// console.log(jsonData);
 		if(jsonData?.speed){
 			speed = parseFloat(jsonData.speed);
+			if(speed > recSpeed){
+				isWarning = true;
+			} else {
+				isWarning = false;
+			}	
 		}
 		if(jsonData?.lat){
 			latitude = parseFloat(jsonData.lat);
@@ -164,7 +171,7 @@ const initServer = () => {
 
 	// connect to Control Center Backend
 	const ccBackendSocket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_URL || "ws://localhost:3426");
-
+	
 	// socket (connected to RSU)
 	socket.on('connect', () => {
 		console.log('Connected to the server');
