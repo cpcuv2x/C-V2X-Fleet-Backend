@@ -47,6 +47,9 @@ var mechClient = net.Socket();
 // 	console.log('connected to server!');
 // })
 
+const rsuIp = process.env.RSU_ADDRESS; // mock
+const rsuPort = process.env.RSU_PORT; // mock
+
 const initServer = () => {	
 	// init server for send to frontend
 	const httpServer = createServer();
@@ -61,13 +64,12 @@ const initServer = () => {
 	});
 
 	// RSU data
-	let rsuIp = '10.8.0.34'; // mock
-	let rsuPort = 8002; // mock
+	
 	let rsuId;
 	let recSpeed;
 	let rsuLatitude;
 	let rsuLongitude;
-
+	
 	// RabbitMQ parameters
 	const heartbeatQueue = 'heartbeat';
 	const locationQueue = 'location';
@@ -174,7 +176,7 @@ const initServer = () => {
 	
 	// socket (connected to RSU)
 	socket.on('connect', () => {
-		console.log('Connected to the server');
+		console.log('Connected to rsu at ' + `http://${rsuIp}:${rsuPort}`);
 	});
 
 	socket.on('disconnect', () => {
@@ -191,15 +193,15 @@ const initServer = () => {
 	});
 
 	socket.on('recommend speed', (message) => {
-		console.log('Received recommend speed:', message);
 		recSpeed = message['recommend_speed'];
+		console.log(`Received recommend speed: ${recSpeed}`);
 	});
 
 	socket.on('rsu location', (message) => {
-		console.log('RSU location:', message);
 		rsuId = message['id'];
-		rsuLatitude = message['latitude'];
+		rsuLatitude =message['latitude'];
 		rsuLongitude = message['longitude'];
+		console.log(`RSU location: ${rsuId}, ${rsuLatitude}, ${rsuLongitude}`);
 	});
 
 	const emitCarId = setInterval(() => {
@@ -210,7 +212,7 @@ const initServer = () => {
 
 	// socket (send to OBU frontend)
 	frontendIo.on('connection', async (socket) => {
-		console.log('connected to frontend');
+		// console.log('connected to frontend');
 
 		socket.on('emergency', (message) => {
 			message['car_id'] = id;
