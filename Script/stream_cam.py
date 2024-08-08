@@ -38,7 +38,7 @@ ps1 = threading.Thread(target=dont_stop, args=["Front", command1])
 ps2 = threading.Thread(target=dont_stop, args=["Back", command2])
 ps3 = threading.Thread(target=dont_stop, args=["Door", command3])
 ps4 = threading.Thread(target=dont_stop, args=["Driver", command4])
-
+time.sleep(60)
 ps1.start()
 ps2.start()
 ps3.start()
